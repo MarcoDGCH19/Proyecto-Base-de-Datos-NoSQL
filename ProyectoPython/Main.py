@@ -6,6 +6,8 @@ from PIL import Image, ImageTk
 # Conexión a la base de datos
 client = MongoClient("mongodb://localhost:27017/")
 base = client["Hotel"]
+clienteHotel = client["Cliente"]
+empleadoHotel = client["Empleado"]
 
 # Función para contador
 def contador(nombre_id):
@@ -16,6 +18,94 @@ def contador(nombre_id):
         return_document=ReturnDocument
     )
     return counter["seq"]
+
+# Función para abrir la ventana de gestión de clientes
+def ventana_clientes():
+    ventana_cli = tk.Toplevel()
+    ventana_cli.title("Gestión de Clientes")
+    ventana_cli.geometry("800x600")
+
+    # Tabla para mostrar los clientes
+    tabla_clientes = ttk.Treeview(ventana_cli, columns=2)
+    tabla_clientes.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_clientes.heading("#0", text="ID Cliente")
+    tabla_clientes.heading("#1", text="Nombre cliente")
+    # Función para mostrar clientes
+    def mostrar_clientes():
+        try:
+            clientes = tabla_clientes.get_children()
+            for cliente_temporal in clientes:
+                tabla_clientes.delete(cliente_temporal)
+            for cliente in clienteHotel.Cliente.find():
+                tabla_clientes.insert('', 0, text=cliente["id_cliente"], values=cliente["nombre_cliente"])
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los cliente: {e}")
+
+    # Función para crear un cliente
+    def crear_cliente():
+        if len(id_cliente.get()) != 0 and len(nombre_cliente.get()) != 0:
+            try:
+                cliente = {
+                    "id_cliente": int(id_cliente.get()),
+                    "Nombre": nombre_cliente.get()
+                }
+                clienteHotel.Cliente.insert_one(cliente)
+                id_cliente.delete(0, tk.END)
+                nombre_cliente.delete(0, tk.END)
+                mostrar_clientes()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear el cliente: {e}")
+        else:
+            messagebox.showerror("Error", "Los campos no pueden estar vacíos.")
+
+    # Función para eliminar un cliente
+    def eliminar_cliente():
+        try:
+            selected_item = tabla_clientes.selection()[0]
+            id_cli = tabla_clientes.item(selected_item, "text")
+            clienteHotel.Cliente.delete_one({"id_cliente": int(id_cli)})
+            mostrar_clientes()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Seleccione un cliente para eliminar.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar el cliente: {e}")
+
+    # Función para modificar un cliente
+    def modificar_cliente():
+        try:
+            selected_item = tabla_clientes.selection()[0]
+            id_cli = tabla_clientes.item(selected_item, "text")
+            nuevo_nombre = nombre_cliente.get()
+
+            if len(nuevo_nombre) == 0:
+                messagebox.showerror("Error", "El nombre no puede estar vacío.")
+                return
+
+            clienteHotel.Cliente.update_one(
+                {"id_cliente": int(id_cli)},
+                {"$set": {"nombre_cliente": nuevo_nombre}}
+            )
+            nombre_cliente.delete(0, tk.END)
+            mostrar_clientes()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona un cliente para modificar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo modificar el cliente: {e}")
+   # Campos de entrada y botones para cliente
+    tk.Label(ventana_cli, text="ID Cliente").grid(row=1, column=0)
+    id_cliente = tk.Entry(ventana_cli)
+    id_cliente.grid(row=1, column=1)
+
+    tk.Label(ventana_cli, text="Nombre cliente").grid(row=2, column=0)
+    nombre_cliente = tk.Entry(ventana_cli)
+    nombre_cliente.grid(row=2, column=1)
+
+    tk.Button(ventana_cli, text="Crear", command=crear_cliente, bg="light green", fg="black").grid(row=3, column=0, pady=10)
+    tk.Button(ventana_cli, text="Modificar", command=modificar_cliente, bg="light yellow", fg="black").grid(row=3, column=1, pady=10)
+    tk.Button(ventana_cli, text="Eliminar", command=eliminar_cliente, bg="red", fg="black").grid(row=3, column=2, pady=10)
+
+    # Cargar los clientes inicialmente
+    mostrar_clientes()
 
 # Función para abrir la ventana de gestión de departamentos
 def ventana_departamentos():
@@ -91,7 +181,7 @@ def ventana_departamentos():
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo modificar el departamento: {e}")
 
-    # Campos de entrada y botones
+    # Campos de entrada y botones para departamento
     tk.Label(ventana_dep, text="ID Departamento").grid(row=1, column=0)
     id_departamento = tk.Entry(ventana_dep)
     id_departamento.grid(row=1, column=1)
@@ -107,6 +197,95 @@ def ventana_departamentos():
     # Cargar los departamentos inicialmente
     mostrar_departamentos()
 
+# Función para abrir la ventana de gestión de empleados
+def ventana_empleados():
+    ventana_emple = tk.Toplevel()
+    ventana_emple.title("Gestión de Empleados")
+    ventana_emple.geometry("800x600")
+
+    # Tabla para mostrar los empleados
+    tabla_empleados = ttk.Treeview(ventana_emple, columns=2)
+    tabla_empleados.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_empleados.heading("#0", text="ID Empleado")
+    tabla_empleados.heading("#1", text="Nombre empleado")
+    # Función para mostrar empleados
+    def mostrar_empleados():
+        try:
+            empleados = tabla_empleados.get_children()
+            for empleado_temporal in empleados:
+                tabla_empleados.delete(empleado_temporal)
+            for empleado in empleadoHotel.Empleado.find():
+                tabla_empleados.insert('', 0, text=empleado["id_empleado"], values=empleado["nombre_empleado"])
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los empleados: {e}")
+
+    # Función para crear un empleado
+    def crear_empleado():
+        if len(id_empleado.get()) != 0 and len(nombre_empleado.get()) != 0:
+            try:
+                empleado = {
+                    "id_empleado": int(id_empleado.get()),
+                    "nombre_empleado": nombre_empleado.get()
+                }
+                empleadoHotel.Empleado.insert_one(empleado)
+                id_empleado.delete(0, tk.END)
+                nombre_empleado.delete(0, tk.END)
+                mostrar_empleados()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear el empleado: {e}")
+        else:
+            messagebox.showerror("Error", "Los campos no pueden estar vacíos.")
+
+    # Función para eliminar un empleado
+    def eliminar_empleado():
+        try:
+            selected_item = tabla_empleados.selection()[0]
+            id_emple = tabla_empleados.item(selected_item, "text")
+            empleadoHotel.Empleado.delete_one({"id_empleado": int(id_emple)})
+            mostrar_empleados()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Seleccione un empleado para eliminar.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar el empleado: {e}")
+
+    # Función para modificar un empleado
+    def modificar_empleado():
+        try:
+            selected_item = tabla_empleados.selection()[0]
+            id_emple = tabla_empleados.item(selected_item, "text")
+            nuevo_nombre = nombre_empleado.get()
+
+            if len(nuevo_nombre) == 0:
+                messagebox.showerror("Error", "El nombre no puede estar vacío.")
+                return
+
+            empleadoHotel.Empleado.update_one(
+                {"id_empleado": int(id_cli)},
+                {"$set": {"nombre_empleado": nuevo_nombre}}
+            )
+            nombre_empleado.delete(0, tk.END)
+            mostrar_empleados()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona un empleado para modificar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo modificar el empleado: {e}")
+
+   # Campos de entrada y botones para empleado
+    tk.Label(ventana_emple, text="ID Empleado").grid(row=1, column=0)
+    id_empleado = tk.Entry(ventana_emple)
+    id_empleado.grid(row=1, column=1)
+
+    tk.Label(ventana_emple, text="Nombre empleado").grid(row=2, column=0)
+    nombre_empleado = tk.Entry(ventana_emple)
+    nombre_empleado.grid(row=2, column=1)
+
+    tk.Button(ventana_emple, text="Crear", command=crear_empleado, bg="light green", fg="black").grid(row=3, column=0, pady=10)
+    tk.Button(ventana_emple, text="Modificar", command=modificar_empleado, bg="light yellow", fg="black").grid(row=3, column=1, pady=10)
+    tk.Button(ventana_emple, text="Eliminar", command=eliminar_empleado, bg="red", fg="black").grid(row=3, column=2, pady=10)
+
+    # Cargar los empleados inicialmente
+    mostrar_empleados()
+
 # Ventana principal
 ventana = tk.Tk()
 ventana.title('Menú principal de la Hotelera')
@@ -117,9 +296,9 @@ ventana.config(menu=barra_menu)
 
 menu = tk.Menu(barra_menu, tearoff=False)
 
-menu.add_command(label='Gestionar Clientes')#Shernna
+menu.add_command(label='Gestionar Clientes', command=ventana_clientes)#Shernna
 menu.add_command(label='Gestionar Departamentos', command=ventana_departamentos) #Marco
-menu.add_command(label='Gestionar Empleados')#Shernna #
+menu.add_command(label='Gestionar Empleados', command=ventana_empleados)#Shernna #
 menu.add_command(label='Gewstionar Eventos')#Keyla
 menu.add_command(label='Gestionar Habitaciones')#Adriela
 menu.add_command(label='Gestionar Sedes de Hotel')#Adriela
