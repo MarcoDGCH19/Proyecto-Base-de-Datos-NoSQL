@@ -286,6 +286,102 @@ def ventana_empleados():
     # Cargar los empleados inicialmente
     mostrar_empleados()
 
+# Función para abrir la ventana de gestión de servicios
+def ventana_servicios():
+        ventana_ser = tk.Toplevel()
+        ventana_ser.title("Gestión de Servicios")
+        ventana_ser.geometry("800x600")
+
+        # Tabla para mostrar los servicios
+        tabla_ser = ttk.Treeview(ventana_ser, columns=2)
+        tabla_ser.grid(row=0, column=0, columnspan=2, pady=10)
+        tabla_ser.heading("#0", text="ID Servicio")
+        tabla_ser.heading("#1", text="Descripción")
+
+        # Función para mostrar servicios
+        def mostrar_servicios():
+            try:
+                registros = tabla_ser.get_children()
+                for registro in registros:
+                    tabla_ser.delete(registro)
+                for documento in base.Servicios.find():
+                    tabla_ser.insert('', 0, text=documento["id_servicio"],
+                                               values=documento["Descripcion"])
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudieron cargar los servicios: {e}")
+
+        # Función para crear un servicios
+        def crear_servicio():
+            if len(id_servicio.get()) != 0 and len(descripcion.get()) != 0:
+                try:
+                    documento = {
+                        "id_servicio": int(id_servicio.get()),
+                        "Descripcion": descripcion.get()
+                    }
+                    base.Servicios.insert_one(documento)
+                    id_servicio.delete(0, tk.END)
+                    descripcion.delete(0, tk.END)
+                    mostrar_servicios()
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo crear el servicio: {e}")
+            else:
+                messagebox.showerror("Error", "Los campos no pueden estar vacíos")
+
+        # Función para eliminar un servicio
+        def eliminar_servicio():
+            try:
+                selected_item = tabla_ser.selection()[0]
+                id_ser = tabla_ser.item(selected_item, "text")
+                base.Servicios.delete_one({"id_servicio": int(id_ser)})
+                mostrar_servicios()
+            except IndexError:
+                messagebox.showwarning("Advertencia", "Selecciona un servicio para eliminar")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo eliminar el servicio: {e}")
+
+        # Función para modificar un departamento
+        def modificar_servicio():
+            try:
+                selected_item = tabla_ser.selection()[0]
+                id_ser = tabla_ser.item(selected_item, "text")
+                nueva_descripcion = descripcion.get()
+
+                if len(nueva_descripcion) == 0:
+                    messagebox.showerror("Error", "La descripción no puede estar vacía")
+                    return
+
+                base.Servicios.update_one(
+                    {"id_servicio": int(id_ser)},
+                    {"$set": {"Descripcion": nueva_descripcion}}
+                )
+                descripcion.delete(0, tk.END)
+                mostrar_servicios()
+            except IndexError:
+                messagebox.showwarning("Advertencia", "Selecciona un servicio para modificar")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo modificar el servicio: {e}")
+
+        # Campos de entrada y botones para servicios
+        tk.Label(ventana_ser, text="ID Servicio").grid(row=1, column=0)
+        id_servicio = tk.Entry(ventana_ser)
+        id_servicio.grid(row=1, column=1)
+
+        tk.Label(ventana_ser, text="Descripción").grid(row=2, column=0)
+        descripcion = tk.Entry(ventana_ser)
+        descripcion.grid(row=2, column=1)
+
+        tk.Button(ventana_ser, text="Crear", command=crear_servicio, bg="light green", fg="black").grid(row=3,
+                                                                                                            column=0,
+                                                                                                            pady=10)
+        tk.Button(ventana_ser, text="Modificar", command=modificar_servicio, bg="light yellow", fg="black").grid(
+            row=3, column=1, pady=10)
+        tk.Button(ventana_ser, text="Eliminar", command=eliminar_servicio, bg="red", fg="black").grid(row=3,
+                                                                                                          column=2,
+                                                                                                          pady=10)
+
+        # Cargar los departamentos inicialmente
+        mostrar_servicios()
+
 # Ventana principal
 ventana = tk.Tk()
 ventana.title('Menú principal de la Hotelera')
@@ -305,7 +401,7 @@ menu.add_command(label='Gestionar Sedes de Hotel')#Adriela
 menu.add_command(label='Gestionar Mantenimientos')#Rachel
 menu.add_command(label='Gestionar Registros')#Rachel
 menu.add_command(label='Gestionar Reservaciones')#Keyla
-menu.add_command(label='Gestionar Servicios')#Marco
+menu.add_command(label='Gestionar Servicios', command=ventana_servicios)#Marco
 menu.add_command(label='Cancelar Factura')#Marco
 menu.add_separator()
 menu.add_command(label='Salir', command=ventana.destroy)
@@ -315,17 +411,17 @@ barra_menu.add_cascade(label="Menú", menu=menu)
 # Cargar imagen
 try:
     imagen_original = Image.open('img/hotelera.jpg')
-    imagen_redimensionada = imagen_original.resize((800, 600))  # Ajustar el tamaño de la imagen
+    imagen_redimensionada = imagen_original.resize((800, 600))
     imagen = ImageTk.PhotoImage(imagen_redimensionada)
 
-    # Crear un canvas para colocar la imagen y el texto
+
     canvas = tk.Canvas(ventana, width=800, height=600)
     canvas.pack()
 
-    # Colocar la imagen en el canvas
+
     canvas.create_image(0, 0, anchor="nw", image=imagen)
 
-    # Agregar el texto en el centro del canvas
+
     canvas.create_text(400, 300, text="Bienvenido al sistema de gestión hotelera", font=("Times New Roman", 24, "bold"),
                        fill="white")
 except tk.TclError:
