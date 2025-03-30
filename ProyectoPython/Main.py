@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from click import command
 from pymongo import MongoClient, ReturnDocument
 from PIL import Image, ImageTk
+from datetime import datetime, timezone
 
 # Conexión a la base de datos
 client = MongoClient("mongodb://localhost:27017/")
@@ -382,6 +384,137 @@ def ventana_servicios():
         # Cargar los departamentos inicialmente
         mostrar_servicios()
 
+# Función para abrir la ventana de gestión de facturas
+def ventana_facturas():
+        ventana_fac = tk.Toplevel()
+        ventana_fac.title("Gestión de facturas")
+        ventana_fac.geometry("1600x800")
+
+        # Tabla para mostrar las facturas
+        tabla_fac = ttk.Treeview(ventana_fac, columns=("Metodo", "id_cliente", "id_habitacion", "total", "fecha"))
+        tabla_fac.grid(row=0, column=0, columnspan=6, pady=10)
+
+        tabla_fac.heading("#0", text="ID Factura")
+        tabla_fac.heading("Metodo", text="Metodo")
+        tabla_fac.heading("id_cliente", text="id_cliente")
+        tabla_fac.heading("id_habitacion", text="id_habitacion")
+        tabla_fac.heading("total", text="total")
+        tabla_fac.heading("fecha", text="fecha")
+
+        # Función para mostrar facturas
+        def mostrar_facturas():
+            try:
+                registros = tabla_fac.get_children()
+                for registro in registros:
+                    tabla_fac.delete(registro)
+                for documento in base.Facturas.find():
+                    tabla_fac.insert('', 0, text=documento["id_factura"],values=(documento["metodo"], documento["id_cliente"], documento["id_habitacion"], documento["total"], documento["fecha"]))
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudieron cargar las facturas: {e}")
+
+        # Función para crear una factura
+            def crear_factura():
+                if len(id_factura.get()) != 0 and metodo.get() in ["Tarjeta","Efectivo"] and combo_clientes.get() != "":
+                    try:
+                       
+                        cliente_seleccionado = combo_clientes.get()
+                        habitacion_seleccionado = combo_habitaciones.get()
+                        precio_seleccionado = combo_habitaciones.get()
+                        id_cliente = cliente_seleccionado.split(" - ")[0]  
+                        id_habitacion= habitacion_seleccionado.split(" - ")[0]
+                        precio =  precio_seleccionado.split(" - ")[2]
+                        fecha_actual = datetime.now()
+
+                        # Crear el diccionario para insertar en la base de datos
+                        documento = {
+                            "id_factura": int(id_factura.get()),
+                            "metodo": metodo.get(),
+                            "id_cliente": int(id_cliente),
+                            "id_habitacion": int(id_habitacion),
+                            "total": int(precio),
+                            "fecha": fecha_actual
+                        }
+                        # Insertar en la colección Facturas
+                        base.Facturas.insert_one(documento)
+
+                        # Limpiar los campos
+                        id_factura.delete(0, tk.END)
+                        metodo.set("Seleccionar")
+                        combo_clientes.set("")
+                        combo_habitaciones.set("")
+
+                        # Mostrar las facturas actualizadas
+                        mostrar_facturas()
+                    except Exception as e:
+                        messagebox.showerror("Error", f"No se pudo crear la factura: {e}")
+                else:
+                    messagebox.showerror("Error",
+                                         "Los campos no pueden estar vacíos o no se ha seleccionado un cliente/método/habitacion válido")
+
+            # Campos de entrada y botones para facturas
+            tk.Label(ventana_fac, text="ID Factura").grid(row=1, column=0)
+            id_factura = tk.Entry(ventana_fac)
+            id_factura.grid(row=1, column=1)
+
+            tk.Label(ventana_fac, text="Método de pago").grid(row=2, column=0)
+            metodo = ttk.Combobox(ventana_fac, values=["Tarjeta", "Efectivo"])
+            metodo.grid(row=2, column=1)
+            metodo.set("Seleccionar")
+
+            # Obtener los id_cliente y nombre de la colección Clientes
+            clientes = [{"id_cliente": cliente["id_cliente"], "nombre": cliente["nombre"]} for cliente in
+                        base.Clientes.find({}, {"_id": 0, "id_cliente": 1, "nombre": 1})]
+
+            # Formatear los valores para mostrar en el Combobox
+            clientes_combo = [f'{cliente["id_cliente"]} - {cliente["nombre"]}' for cliente in clientes]
+
+            # Crear el Combobox
+            tk.Label(ventana_fac, text="id Cliente").grid(row=3, column=0)
+            combo_clientes = ttk.Combobox(ventana_fac, values=clientes_combo, state="readonly")
+            combo_clientes.grid(row=3, column=1)
+
+            # Función para obtener el id_cliente seleccionado
+            def seleccionar_cliente(event):
+                seleccionado = combo_clientes.get()
+                id_cliente = seleccionado.split(" - ")[0]
+
+
+            combo_clientes.bind("<<ComboboxSelected>>", seleccionar_cliente)
+
+            # Obtener los id_habitacion y descripcion de la colección habitacion
+            habitaciones = [{"id_habitacion": habitacion["id_habitacion"], "Descripcion": habitacion["Descripcion"],"precio":habitacion["precio"]} for habitacion in
+                        base.Habitaciones.find({}, {"_id": 0, "id_habitacion": 1, "Descripcion": 1,"precio":1})]
+
+            # Formatear los valores para mostrar en el Combobox
+            habitaciones_combo = [f'{habitacion["id_habitacion"]} - {habitacion["Descripcion"]} - {habitacion["precio"]}' for habitacion in habitaciones]
+
+            # Crear el Combobox
+            tk.Label(ventana_fac, text="ID Habitacion / Precio").grid(row=4, column=0)
+            combo_habitaciones = ttk.Combobox(ventana_fac, values=habitaciones_combo, state="readonly")
+            combo_habitaciones.grid(row=4, column=1)
+
+            # Función para obtener el id_cliente seleccionado
+            def seleccionar_habitacion(event):
+                seleccionado = combo_habitaciones.get()
+
+                id_habitacion = seleccionado.split(" - ")[0]
+                precio = seleccionado.split(" - ")[2]
+                print(precio)
+
+
+
+
+            combo_habitaciones.bind("<<ComboboxSelected>>", seleccionar_habitacion)
+
+            tk.Button(ventana_fac, text="Crear", command=crear_factura, bg="light green", fg="black").grid(row=5, column=1)
+
+        # Cargar las facturas inicialmente
+        mostrar_facturas()
+
+
+
+
+
 # Ventana principal
 ventana = tk.Tk()
 ventana.title('Menú principal de la Hotelera')
@@ -402,7 +535,7 @@ menu.add_command(label='Gestionar Mantenimientos')#Rachel
 menu.add_command(label='Gestionar Registros')#Rachel
 menu.add_command(label='Gestionar Reservaciones')#Keyla
 menu.add_command(label='Gestionar Servicios', command=ventana_servicios)#Marco
-menu.add_command(label='Cancelar Factura')#Marco
+menu.add_command(label='Cancelar Factura', command = ventana_facturas)#Marco
 menu.add_separator()
 menu.add_command(label='Salir', command=ventana.destroy)
 
