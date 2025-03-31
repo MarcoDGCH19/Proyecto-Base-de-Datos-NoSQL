@@ -262,7 +262,7 @@ def ventana_empleados():
                 return
 
             empleadoHotel.Empleado.update_one(
-                {"id_empleado": int(id_cli)},
+                {"id_empleado": int(id_cli)}, 
                 {"$set": {"nombre_empleado": nuevo_nombre}}
             )
             nombre_empleado.delete(0, tk.END)
@@ -512,8 +512,283 @@ def ventana_facturas():
         mostrar_facturas()
 
 
+# Función para abrir la ventana de gestión de mantenimientos
+
+def ventana_mantenimientos():
+    ventana_mant = tk.Toplevel()
+    ventana_mant.title("Gestión de Mantenimientos")
+    ventana_mant.geometry("900x600") 
+
+    # Contenedor principal con padding
+    frame = tk.Frame(ventana_mant, padx=20, pady=20)
+    frame.pack(expand=True)
+
+    # Tabla de Mantenimientos con estilo
+    estilo = ttk.Style()
+    estilo.configure("Treeview", rowheight=25, font=("Arial", 10))
+    estilo.configure("Treeview.Heading", font=("Arial", 11, "bold"), background="lightblue")
+
+    tabla_mant = ttk.Treeview(frame, columns=("Descripcion", "id_empleado", "id_habitacion", "fecha"), show="headings")
+    tabla_mant.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
+
+    # Encabezados
+    tabla_mant.heading("Descripcion", text="Descripción")
+    tabla_mant.heading("id_empleado", text="ID Empleado")
+    tabla_mant.heading("id_habitacion", text="ID Habitación")
+    tabla_mant.heading("fecha", text="Fecha")
+
+    for col in ("Descripcion", "id_empleado", "id_habitacion", "fecha"):
+        tabla_mant.column(col, width=150, anchor="center")
+
+    # Función que muestra los mantenimientos
+    def mostrar_mantenimientos():
+        try:
+            registros = tabla_mant.get_children()
+            for registro in registros:
+                tabla_mant.delete(registro)
+                
+            empleados_dict = {str(empleado["id_empleado"]): empleado["nombre"] for empleado in base.Empleados.find({}, {"_id": 0, "id_empleado": 1, "nombre": 1})}
+
+            for documento in base.Mantenimientos.find():
+                id_empleado = str(documento["id_empleado"])
+                nombre_empleado = empleados_dict.get(id_empleado, "NA") 
+
+                tabla_mant.insert("", "end", text=documento["id_mantenimiento"], values=(
+                    documento["Descripcion"], 
+                    f"{id_empleado} - {nombre_empleado}",  
+                    documento["id_habitacion"], 
+                    documento["fecha"]
+                ))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los mantenimientos: {e}")
+
+    # Campos de entrada Id Mantenimiento/Descripcion
+    tk.Label(frame, text="ID Mantenimiento:").grid(row=1, column=0, sticky="w", pady=5)
+    id_mantenimiento = tk.Entry(frame, width=30)
+    id_mantenimiento.grid(row=1, column=1, columnspan=2, pady=5)
+
+    tk.Label(frame, text="Descripción:").grid(row=2, column=0, sticky="w", pady=5)
+    Descripcion = ttk.Combobox(frame, values=[
+        "Reparacion de electrodomesticos", "Reparacion de sistemas", "Fugas","Reparación de conexion", "Revision de cerraduras", "Revision de moviliario" ], state="readonly", width=28)
+    Descripcion.grid(row=2, column=1, columnspan=2, pady=5)
+    Descripcion.set("Seleccionar")
+
+    # Obtener empleados
+    empleados = [{"id_empleado": empleado["id_empleado"], "nombre": empleado["nombre"]} for empleado in
+                 base.Empleados.find({}, {"_id": 0, "id_empleado": 1, "nombre": 1})]
+    empleados_combo = [f'{empleado["id_empleado"]} - {empleado["nombre"]}' for empleado in empleados]
+
+    tk.Label(frame, text="ID Empleado:").grid(row=3, column=0, sticky="w", pady=5)
+    combo_empleados = ttk.Combobox(frame, values=empleados_combo, state="readonly", width=28)
+    combo_empleados.grid(row=3, column=1, columnspan=2, pady=5)
+
+    # Obtener habitaciones
+    habitaciones = [{"id_habitacion": habitacion["id_habitacion"], "Descripcion": habitacion["Descripcion"]} for habitacion in
+                    base.Habitaciones.find({}, {"_id": 0, "id_habitacion": 1, "Descripcion": 1})]
+    habitaciones_combo = [f'{habitacion["id_habitacion"]} - {habitacion["Descripcion"]}' for habitacion in habitaciones]
+
+    tk.Label(frame, text="ID Habitación:").grid(row=4, column=0, sticky="w", pady=5)
+    combo_habitaciones = ttk.Combobox(frame, values=habitaciones_combo, state="readonly", width=28)
+    combo_habitaciones.grid(row=4, column=1, columnspan=2, pady=5)
+
+    # Función para crear mantenimiento
+    def crear_mantenimiento():
+        if id_mantenimiento.get() and Descripcion.get() != "Seleccionar" and combo_empleados.get() and combo_habitaciones.get():
+            try:
+                empleado_seleccionado = combo_empleados.get()
+                habitacion_seleccionada = combo_habitaciones.get()
+
+                if " - " in empleado_seleccionado and " - " in habitacion_seleccionada:
+                    id_empleado = empleado_seleccionado.split(" - ")[0]
+                    id_habitacion = habitacion_seleccionada.split(" - ")[0]
+                else:
+                    messagebox.showerror("Error", "Selección inválida.")
+                    return
+
+                fecha_actual = datetime.now()
+
+                documento = {
+                    "id_mantenimiento": int(id_mantenimiento.get()),
+                    "Descripcion": Descripcion.get(),
+                    "id_empleado": int(id_empleado),
+                    "id_habitacion": int(id_habitacion),
+                    "fecha": fecha_actual
+                }
+
+                base.Mantenimientos.insert_one(documento)
+
+                id_mantenimiento.delete(0, tk.END)
+                Descripcion.set("Seleccionar")
+                combo_empleados.set("")
+                combo_habitaciones.set("")
+
+                mostrar_mantenimientos()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear el mantenimiento: {e}")
+        else:
+            messagebox.showerror("Error", "Todos los campos son obligatorios.")
+
+     # Función para eliminar un mantenimiento
+    def eliminar_mantenimiento():
+        try:
+            selected_item = tabla_mant.selection()[0]  
+            id_mantenimiento = tabla_mant.item(selected_item, "text") 
+
+            if not id_mantenimiento:
+                messagebox.showwarning("Advertencia", "No se pudo obtener el ID del mantenimiento.")
+                return
+
+            base.Mantenimientos.delete_one({"id_mantenimiento": int(id_mantenimiento)})
+            mostrar_mantenimientos()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona un mantenimiento para eliminar.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar el mantenimiento: {e}")
+
+                
+    # Botón de Crear/Eliminar con estilo
+    boton_crear = tk.Button(frame, text="Crear Mantenimiento", command=crear_mantenimiento,
+        bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_crear.grid(row=5, column=0, columnspan=3, pady=10, sticky="ew")
+    
+    boton_eliminar = tk.Button(frame, text="Eliminar Mantenimiento", command=eliminar_mantenimiento,
+        bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_eliminar.grid(row=6, column=0, columnspan=3, pady=10, sticky="ew")
+    
+    
+    mostrar_mantenimientos()
 
 
+# Función para abrir la ventana de gestión de registros
+
+def ventana_registros():
+    ventana_reg = tk.Toplevel()
+    ventana_reg.title("Gestión de Registros")
+    ventana_reg.geometry("900x600")
+
+    # Contenedor principal con padding
+    frame = tk.Frame(ventana_reg, padx=20, pady=20)
+    frame.pack(expand=True)
+
+    # Tabla de Registros con estilo
+    estilo = ttk.Style()
+    estilo.configure("Treeview", rowheight=25, font=("Arial", 10))
+    estilo.configure("Treeview.Heading", font=("Arial", 11, "bold"), background="lightblue")
+
+    tabla_reg = ttk.Treeview(frame, columns=("accion", "id_cliente", "fecha"))
+    tabla_reg.grid(row=0, column=0, columnspan=3, pady=10, sticky="ew")
+
+    tabla_reg.heading("#0", text="ID Registro")
+    tabla_reg.heading("accion", text="Registro Cliente")
+    tabla_reg.heading("id_cliente", text="ID Cliente")
+    tabla_reg.heading("fecha", text="Fecha")
+
+    for col in ("accion", "id_cliente", "fecha"):
+        tabla_reg.column(col, width=150, anchor="center")
+
+    # Función que muestra los registros
+    def mostrar_registros():
+        try:
+            registros = tabla_reg.get_children()
+            for registro in registros:
+                tabla_reg.delete(registro)
+                
+            clientes_dict = {str(cliente["id_cliente"]): cliente["nombre"] for cliente in base.Clientes.find({}, {"_id": 0, "id_cliente": 1, "nombre": 1})}
+
+            for documento in base.Registros.find():
+                id_cliente = str(documento["id_cliente"])
+                nombre_cliente = clientes_dict.get(id_cliente, "NA") 
+
+                tabla_reg.insert("", 0, text=documento["id_registro"], values=(
+                    documento["accion"], 
+                    f"{id_cliente} - {nombre_cliente}",  
+                    documento["fecha"]
+                ))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los registros: {e}")
+
+    # Campos de entrada Id Registro/accion
+    
+    tk.Label(frame, text="ID Registro:").grid(row=1, column=0, sticky="w", pady=5)
+    id_registro = tk.Entry(frame, width=30)
+    id_registro.grid(row=1, column=1, columnspan=2, pady=5)
+
+    tk.Label(frame, text="Registro de Cliente:").grid(row=2, column=0, sticky="w", pady=5)
+    accion = ttk.Combobox(frame, values=["Entrada", "Salida" ], state="readonly", width=28)
+    accion.grid(row=2, column=1, columnspan=2, pady=5)
+    accion.set("Seleccionar")
+
+    # Obtener clientes
+    clientes = [{"id_cliente": cliente["id_cliente"], "nombre": cliente["nombre"]} for cliente in
+                 base.Clientes.find({}, {"_id": 0, "id_cliente": 1, "nombre": 1})]
+    clientes_combo = [f'{cliente["id_cliente"]} - {cliente["nombre"]}' for cliente in clientes]
+
+    tk.Label(frame, text="ID Cliente:").grid(row=3, column=0, sticky="w", pady=5)
+    combo_clientes = ttk.Combobox(frame, values=clientes_combo, state="readonly", width=28)
+    combo_clientes.grid(row=3, column=1, columnspan=2, pady=5)
+
+    # Función para crear registro
+    def crear_registro():
+        if id_registro.get() and accion.get() != "Seleccionar" and combo_clientes.get():
+            try:
+                cliente_seleccionado = combo_clientes.get()
+
+                if " - " in cliente_seleccionado:
+                    id_cliente = cliente_seleccionado.split(" - ")[0]
+                else:
+                    messagebox.showerror("Error", "Selección inválida.")
+                    return
+
+                fecha_actual = datetime.now()
+
+                documento = {
+                    "id_registro": int(id_registro.get()),
+                    "accion": accion.get(),
+                    "id_cliente": int(id_cliente),
+                    "fecha": fecha_actual
+                }
+
+                base.Registros.insert_one(documento)
+
+                id_registro.delete(0, tk.END)
+                accion.set("Seleccionar")
+                combo_clientes.set("")
+
+                mostrar_registros()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear el registro: {e}")
+        else:
+            messagebox.showerror("Error", "Todos los campos son obligatorios.")
+
+     # Función para eliminar un registro
+    def eliminar_registro():
+        try:
+            selected_item = tabla_reg.selection()[0]  
+            id_registro = tabla_reg.item(selected_item, "text") 
+
+            if not id_registro:
+                messagebox.showwarning("Advertencia", "No se pudo obtener el ID del registro.")
+                return
+
+            base.Registros.delete_one({"id_registro": int(id_registro)})
+            mostrar_registros()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona un registro para eliminar.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar el registro: {e}")
+
+                
+    # Botón de Crear/Eliminar con estilo
+    boton_crear = tk.Button(frame, text="Crear Registro", command=crear_registro,
+        bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_crear.grid(row=5, column=0, columnspan=3, pady=10, sticky="ew")
+    
+    boton_eliminar = tk.Button(frame, text="Eliminar Registro", command=eliminar_registro,
+        bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_eliminar.grid(row=6, column=0, columnspan=3, pady=10, sticky="ew")
+    
+
+    mostrar_registros()
 
 # Ventana principal
 ventana = tk.Tk()
@@ -531,8 +806,8 @@ menu.add_command(label='Gestionar Empleados', command=ventana_empleados)#Shernna
 menu.add_command(label='Gewstionar Eventos')#Keyla
 menu.add_command(label='Gestionar Habitaciones')#Adriela
 menu.add_command(label='Gestionar Sedes de Hotel')#Adriela
-menu.add_command(label='Gestionar Mantenimientos')#Rachel
-menu.add_command(label='Gestionar Registros')#Rachel
+menu.add_command(label='Gestionar Mantenimientos', command = ventana_mantenimientos)#Rachel
+menu.add_command(label='Gestionar Registros', command = ventana_registros)#Rachel
 menu.add_command(label='Gestionar Reservaciones')#Keyla
 menu.add_command(label='Gestionar Servicios', command=ventana_servicios)#Marco
 menu.add_command(label='Cancelar Factura', command = ventana_facturas)#Marco
