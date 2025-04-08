@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from click import command
 from pymongo import MongoClient, ReturnDocument
 from PIL import Image, ImageTk
@@ -790,6 +790,122 @@ def ventana_registros():
 
     mostrar_registros()
 
+# Función para abrir la ventana de gestión de eventos
+eventos = []
+def gestionar_eventos():
+    nueva_ventana = tk.Toplevel()
+    nueva_ventana.title("Gestión de Eventos")
+    tk.Label(nueva_ventana, text="Módulo para gestionar eventos").pack(padx=10, pady=10)
+
+    def agregar_evento():
+        nombre = simpledialog.askstring("Agregar Evento", "Nombre del evento:")
+        if nombre:
+            eventos.append(nombre)
+            actualizar_lista_eventos()
+
+    def eliminar_evento():
+        seleccionado = lista_eventos.curselection()
+        if seleccionado:
+            eventos.pop(seleccionado[0])
+            actualizar_lista_eventos()
+        else:
+            messagebox.showwarning("Atención", "Seleccione un evento para eliminar.")
+
+    def actualizar_lista_eventos():
+        lista_eventos.delete(0, tk.END)
+        for evento in eventos:
+            lista_eventos.insert(tk.END, evento)
+
+    def gestionar_eventos():
+        ventana = tk.Toplevel()
+        ventana.title("Gestión de Eventos")
+        ventana.geometry("400x300")
+
+        global lista_eventos
+        lista_eventos = tk.Listbox(ventana)
+        lista_eventos.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        frame_botones = tk.Frame(ventana)
+        frame_botones.pack(pady=5)
+
+        tk.Button(frame_botones, text="Agregar", command=agregar_evento).pack(side=tk.LEFT, padx=5)
+        tk.Button(frame_botones, text="Eliminar", command=eliminar_evento).pack(side=tk.LEFT, padx=5)
+
+        actualizar_lista_eventos()
+
+# Función para abrir la ventana de gestión de reservaciones
+reservaciones = []
+def gestionar_reservaciones():
+    ventana = tk.Toplevel()
+    ventana.title("Gestión de Reservaciones")
+    ventana.geometry("500x350")
+
+    # Mostrar las reservaciones
+    lista_reservaciones = tk.Listbox(ventana, font=('Arial', 10))
+    lista_reservaciones.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+    # Actualizar la lista mostrada
+    def actualizar_lista_reservaciones():
+        lista_reservaciones.delete(0, tk.END)
+        for reserva in reservaciones:
+            texto = f"{reserva['nombre']} - {reserva['fecha']} - {reserva['cantidad']} clientes"
+            lista_reservaciones.insert(tk.END, texto)
+
+    # Agregar una nueva reservación
+    def agregar_reservacion():
+        nombre = simpledialog.askstring("Agregar Reservación", "Nombre del cliente:")
+        if not nombre:
+            return
+
+        fecha_entrada = simpledialog.askstring("Fecha de Entrada", "Ingrese la fecha de entrada (dd/mm/aaaa):")
+        try:
+            entrada_dt = datetime.strptime(fecha_entrada, "%d/%m/%Y")
+        except (ValueError, TypeError):
+            messagebox.showerror("Error", "Formato de fecha de entrada inválido. Usa dd/mm/aaaa.")
+            return
+
+        fecha_salida = simpledialog.askstring("Fecha de Salida", "Ingrese la fecha de salida (dd/mm/aaaa):")
+        try:
+            salida_dt = datetime.strptime(fecha_salida, "%d/%m/%Y")
+        except (ValueError, TypeError):
+            messagebox.showerror("Error", "Formato de fecha de salida inválido. Usa dd/mm/aaaa.")
+            return
+
+        if salida_dt < entrada_dt:
+            messagebox.showerror("Error", "La fecha de salida no puede ser anterior a la de entrada.")
+            return
+
+        try:
+            cantidad = int(simpledialog.askstring("Cantidad", "Cantidad de clientes:"))
+        except (ValueError, TypeError):
+            messagebox.showerror("Error", "Cantidad inválida.")
+            return
+
+        reservaciones.append({
+            "nombre": nombre,
+            "fecha_entrada": fecha_entrada,
+            "fecha_salida": fecha_salida,
+            "cantidad": cantidad
+        })
+        actualizar_lista_reservaciones()
+        
+    # Eliminar una reservación
+    def eliminar_reservacion():
+        seleccionado = lista_reservaciones.curselection()
+        if seleccionado:
+            reservaciones.pop(seleccionado[0])
+            actualizar_lista_reservaciones()
+        else:
+            messagebox.showwarning("Atención", "Seleccione una reservación para eliminar.")
+
+    frame_botones = tk.Frame(ventana)
+    frame_botones.pack(pady=5)
+
+    tk.Button(frame_botones, text="Agregar", command=agregar_reservacion).pack(side=tk.LEFT, padx=5)
+    tk.Button(frame_botones, text="Eliminar", command=eliminar_reservacion).pack(side=tk.LEFT, padx=5)
+
+    actualizar_lista_reservaciones()
+
 # Ventana principal
 ventana = tk.Tk()
 ventana.title('Menú principal de la Hotelera')
@@ -803,12 +919,12 @@ menu = tk.Menu(barra_menu, tearoff=False)
 menu.add_command(label='Gestionar Clientes', command=ventana_clientes)#Shernna
 menu.add_command(label='Gestionar Departamentos', command=ventana_departamentos) #Marco
 menu.add_command(label='Gestionar Empleados', command=ventana_empleados)#Shernna #
-menu.add_command(label='Gewstionar Eventos')#Keyla
+menu.add_command(label='Gestionar Eventos', command=gestionar_eventos) #Keyla
 menu.add_command(label='Gestionar Habitaciones')#Adriela
 menu.add_command(label='Gestionar Sedes de Hotel')#Adriela
 menu.add_command(label='Gestionar Mantenimientos', command = ventana_mantenimientos)#Rachel
 menu.add_command(label='Gestionar Registros', command = ventana_registros)#Rachel
-menu.add_command(label='Gestionar Reservaciones')#Keyla
+menu.add_command(label='Gestionar Reservaciones', command=gestionar_reservaciones)  #Keyla
 menu.add_command(label='Gestionar Servicios', command=ventana_servicios)#Marco
 menu.add_command(label='Cancelar Factura', command = ventana_facturas)#Marco
 menu.add_separator()
@@ -836,3 +952,4 @@ except tk.TclError:
     messagebox.showerror("Error", "No se pudo cargar la imagen")
 
 ventana.mainloop()
+
