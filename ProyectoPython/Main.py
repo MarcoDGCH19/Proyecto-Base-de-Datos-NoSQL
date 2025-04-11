@@ -17,7 +17,7 @@ def contador(nombre_id):
         {"id": nombre_id},
         {"$inc": {"seq": 1}},
         upsert=True,
-        return_document=ReturnDocument
+        return_document=ReturnDocument.AFTER
     )
     return counter["seq"]
 
@@ -790,121 +790,198 @@ def ventana_registros():
 
     mostrar_registros()
 
-# Función para abrir la ventana de gestión de eventos
-eventos = []
+# Funcion para la ventana y gestionar eventos
 def gestionar_eventos():
-    nueva_ventana = tk.Toplevel()
-    nueva_ventana.title("Gestión de Eventos")
-    tk.Label(nueva_ventana, text="Módulo para gestionar eventos").pack(padx=10, pady=10)
+    ventana_eventos = tk.Toplevel()
+    ventana_eventos.title("Gestión de Eventos")
+    ventana_eventos.geometry("850x450")
+
+    # Tabla para eventos
+    tabla_eventos = ttk.Treeview(ventana_eventos, columns=("nombre", "fecha", "lugar", "descripcion"), show="headings")
+    tabla_eventos.heading("nombre", text="Nombre")
+    tabla_eventos.heading("fecha", text="Fecha")
+    tabla_eventos.heading("lugar", text="Lugar")
+    tabla_eventos.heading("descripcion", text="Descripción")
+    tabla_eventos.pack(fill=tk.BOTH, expand=True, pady=10)
+
+    def actualizar_tabla():
+        tabla_eventos.delete(*tabla_eventos.get_children())
+        for evento in base.Eventos.find({}, {"_id": 0}):
+            tabla_eventos.insert("", tk.END, values=(evento["nombre"], evento["fecha"], evento["lugar"], evento["descripcion"]))
 
     def agregar_evento():
-        nombre = simpledialog.askstring("Agregar Evento", "Nombre del evento:")
-        if nombre:
-            eventos.append(nombre)
-            actualizar_lista_eventos()
+        popup = tk.Toplevel()
+        popup.title("Nuevo Evento")
+        popup.geometry("350x300")
+        popup.grab_set()
+
+        tk.Label(popup, text="Nombre del evento:").pack()
+        entry_nombre = tk.Entry(popup)
+        entry_nombre.pack()
+
+        tk.Label(popup, text="Fecha del evento (dd/mm/yyyy):").pack()
+        entry_fecha = tk.Entry(popup)
+        entry_fecha.pack()
+
+        tk.Label(popup, text="Lugar del evento:").pack()
+        entry_lugar = tk.Entry(popup)
+        entry_lugar.pack()
+
+        tk.Label(popup, text="Descripción del evento:").pack()
+        entry_descripcion = tk.Entry(popup)
+        entry_descripcion.pack()
+
+        def guardar_evento():
+            try:
+                nombre = entry_nombre.get()
+                fecha = entry_fecha.get()
+                lugar = entry_lugar.get()
+                descripcion = entry_descripcion.get()
+
+                if not all([nombre, fecha, lugar, descripcion]):
+                    raise ValueError("Todos los campos son requeridos.")
+
+                # Validar formato de fecha
+                fecha_dt = datetime.strptime(fecha, "%d/%m/%Y")
+
+                # Comprobar si ya hay un evento con esa fecha
+                if base.Eventos.find_one({"fecha": fecha}):
+                    messagebox.showerror("Error", f"Ya existe un evento registrado para el día {fecha}. Por favor, seleccione otra fecha.")
+                    return
+
+                # Insertar evento
+                base.Eventos.insert_one({
+                    "nombre": nombre,
+                    "fecha": fecha,
+                    "lugar": lugar,
+                    "descripcion": descripcion
+                })
+
+                actualizar_tabla()
+                popup.destroy()
+            except ValueError as e:
+                messagebox.showerror("Error", str(e))
+
+
+        tk.Button(popup, text="Guardar", command=guardar_evento, bg="lightblue").pack(pady=10)
 
     def eliminar_evento():
-        seleccionado = lista_eventos.curselection()
+        seleccionado = tabla_eventos.selection()
         if seleccionado:
-            eventos.pop(seleccionado[0])
-            actualizar_lista_eventos()
+            valores = tabla_eventos.item(seleccionado[0], "values")
+            nombre, fecha, lugar, descripcion = valores
+            base.Eventos.delete_one({
+                "nombre": nombre,
+                "fecha": fecha,
+                "lugar": lugar,
+                "descripcion": descripcion
+            })
+            actualizar_tabla()
         else:
-            messagebox.showwarning("Atención", "Seleccione un evento para eliminar.")
+            messagebox.showwarning("Advertencia", "Seleccione un evento para eliminar.")
 
-    def actualizar_lista_eventos():
-        lista_eventos.delete(0, tk.END)
-        for evento in eventos:
-            lista_eventos.insert(tk.END, evento)
+    # Botones
+    frame_botones = tk.Frame(ventana_eventos)
+    frame_botones.pack(pady=5)
+    tk.Button(frame_botones, text="Agregar Evento", command=agregar_evento).pack(side=tk.LEFT, padx=10)
+    tk.Button(frame_botones, text="Eliminar Evento", command=eliminar_evento).pack(side=tk.LEFT, padx=10)
 
-    def gestionar_eventos():
-        ventana = tk.Toplevel()
-        ventana.title("Gestión de Eventos")
-        ventana.geometry("400x300")
+    actualizar_tabla()
 
-        global lista_eventos
-        lista_eventos = tk.Listbox(ventana)
-        lista_eventos.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-
-        frame_botones = tk.Frame(ventana)
-        frame_botones.pack(pady=5)
-
-        tk.Button(frame_botones, text="Agregar", command=agregar_evento).pack(side=tk.LEFT, padx=5)
-        tk.Button(frame_botones, text="Eliminar", command=eliminar_evento).pack(side=tk.LEFT, padx=5)
-
-        actualizar_lista_eventos()
 
 # Función para abrir la ventana de gestión de reservaciones
-reservaciones = []
 def gestionar_reservaciones():
     ventana = tk.Toplevel()
     ventana.title("Gestión de Reservaciones")
-    ventana.geometry("500x350")
+    ventana.geometry("850x450")
 
-    # Mostrar las reservaciones
-    lista_reservaciones = tk.Listbox(ventana, font=('Arial', 10))
-    lista_reservaciones.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+    tabla = ttk.Treeview(ventana, columns=("cliente", "entrada", "salida", "cantidad"), show="headings")
+    tabla.heading("cliente", text="Cliente")
+    tabla.heading("entrada", text="Fecha Entrada")
+    tabla.heading("salida", text="Fecha Salida")
+    tabla.heading("cantidad", text="Cantidad Clientes")
+    tabla.pack(fill=tk.BOTH, expand=True, pady=10)
 
-    # Actualizar la lista mostrada
-    def actualizar_lista_reservaciones():
-        lista_reservaciones.delete(0, tk.END)
-        for reserva in reservaciones:
-            texto = f"{reserva['nombre']} - {reserva['fecha']} - {reserva['cantidad']} clientes"
-            lista_reservaciones.insert(tk.END, texto)
+    def actualizar_tabla():
+        tabla.delete(*tabla.get_children())
+        for r in base.Reservaciones.find({}, {"_id": 0}):
+            tabla.insert("", tk.END, values=(r["cliente"], r["entrada"], r["salida"], r["cantidad"]))
 
-    # Agregar una nueva reservación
-    def agregar_reservacion():
-        nombre = simpledialog.askstring("Agregar Reservación", "Nombre del cliente:")
-        if not nombre:
-            return
+    def agregar_reserva():
+        popup = tk.Toplevel()
+        popup.title("Nueva Reservación")
+        popup.geometry("300x250")
+        popup.grab_set()
 
-        fecha_entrada = simpledialog.askstring("Fecha de Entrada", "Ingrese la fecha de entrada (dd/mm/aaaa):")
-        try:
-            entrada_dt = datetime.strptime(fecha_entrada, "%d/%m/%Y")
-        except (ValueError, TypeError):
-            messagebox.showerror("Error", "Formato de fecha de entrada inválido. Usa dd/mm/aaaa.")
-            return
+        tk.Label(popup, text="Nombre del cliente:").pack()
+        entry_nombre = tk.Entry(popup)
+        entry_nombre.pack()
 
-        fecha_salida = simpledialog.askstring("Fecha de Salida", "Ingrese la fecha de salida (dd/mm/aaaa):")
-        try:
-            salida_dt = datetime.strptime(fecha_salida, "%d/%m/%Y")
-        except (ValueError, TypeError):
-            messagebox.showerror("Error", "Formato de fecha de salida inválido. Usa dd/mm/aaaa.")
-            return
+        tk.Label(popup, text="Fecha de entrada (dd/mm/yyyy):").pack()
+        entry_entrada = tk.Entry(popup)
+        entry_entrada.pack()
 
-        if salida_dt < entrada_dt:
-            messagebox.showerror("Error", "La fecha de salida no puede ser anterior a la de entrada.")
-            return
+        tk.Label(popup, text="Fecha de salida (dd/mm/yyyy):").pack()
+        entry_salida = tk.Entry(popup)
+        entry_salida.pack()
 
-        try:
-            cantidad = int(simpledialog.askstring("Cantidad", "Cantidad de clientes:"))
-        except (ValueError, TypeError):
-            messagebox.showerror("Error", "Cantidad inválida.")
-            return
+        tk.Label(popup, text="Cantidad de clientes:").pack()
+        entry_cantidad = tk.Entry(popup)
+        entry_cantidad.pack()
 
-        reservaciones.append({
-            "nombre": nombre,
-            "fecha_entrada": fecha_entrada,
-            "fecha_salida": fecha_salida,
-            "cantidad": cantidad
-        })
-        actualizar_lista_reservaciones()
-        
-    # Eliminar una reservación
-    def eliminar_reservacion():
-        seleccionado = lista_reservaciones.curselection()
+        def guardar_reserva():
+            try:
+                nombre = entry_nombre.get()
+                entrada = datetime.strptime(entry_entrada.get(), "%d/%m/%Y")
+                salida = datetime.strptime(entry_salida.get(), "%d/%m/%Y")
+                cantidad = int(entry_cantidad.get())
+
+                if salida < entrada:
+                    messagebox.showerror("Error", "La fecha de salida no puede ser anterior a la de entrada.")
+                    return
+
+                id_reservacion = contador("reservacion")
+
+                base.Reservaciones.insert_one({
+                    "id_reservacion": id_reservacion,
+                    "cliente": nombre,
+                    "entrada": entrada.strftime("%d/%m/%Y"),
+                    "salida": salida.strftime("%d/%m/%Y"),
+                    "cantidad": cantidad
+                })
+
+                print(f"Reservación registrada con ID #{id_reservacion}")
+                messagebox.showinfo("Reservación registrada", f"Reservación exitosa.\nNúmero de reservación: {id_reservacion}")
+
+                actualizar_tabla()
+                popup.destroy()
+            except ValueError as e:
+                messagebox.showerror("Error", f"Datos inválidos: {e}")
+
+        tk.Button(popup, text="Guardar", command=guardar_reserva, bg="lightblue").pack(pady=10)
+
+    def eliminar_reserva():
+        seleccionado = tabla.selection()
         if seleccionado:
-            reservaciones.pop(seleccionado[0])
-            actualizar_lista_reservaciones()
+            valores = tabla.item(seleccionado[0], "values")
+            cliente, entrada, salida, cantidad = valores
+            base.Reservaciones.delete_one({
+                "cliente": cliente,
+                "entrada": entrada,
+                "salida": salida,
+                "cantidad": int(cantidad)
+            })
+            actualizar_tabla()
         else:
-            messagebox.showwarning("Atención", "Seleccione una reservación para eliminar.")
+            messagebox.showwarning("Advertencia", "Seleccione una reservación para eliminar.")
 
+    # Botones principales
     frame_botones = tk.Frame(ventana)
     frame_botones.pack(pady=5)
+    tk.Button(frame_botones, text="Agregar Reservación", command=agregar_reserva).pack(side=tk.LEFT, padx=10)
+    tk.Button(frame_botones, text="Eliminar Reservación", command=eliminar_reserva).pack(side=tk.LEFT, padx=10)
 
-    tk.Button(frame_botones, text="Agregar", command=agregar_reservacion).pack(side=tk.LEFT, padx=5)
-    tk.Button(frame_botones, text="Eliminar", command=eliminar_reservacion).pack(side=tk.LEFT, padx=5)
-
-    actualizar_lista_reservaciones()
+    actualizar_tabla()
 
 # Ventana principal
 ventana = tk.Tk()
