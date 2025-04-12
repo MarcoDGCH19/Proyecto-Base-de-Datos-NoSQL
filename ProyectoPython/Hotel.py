@@ -26,9 +26,9 @@ def ventana_clientes():
     ventana_cli.geometry("1000x600")
 
     # Tabla para mostrar los clientes
-    tabla_clientes = ttk.Treeview(ventana_cli, columns=("ID cliente", "Nombre cliente", "Correo cliente","Telefono cliente", "Direccion cliente"))
-    tabla_clientes.grid(row=0, column=0, columnspan=5, pady=10)
-    tabla_clientes.heading("#0", text="ID cliente")
+    tabla_clientes = ttk.Treeview(ventana_cli, columns=2)
+    tabla_clientes.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_clientes.heading("#0", text="ID Cliente")
     tabla_clientes.heading("#1", text="Nombre cliente")
     tabla_clientes.heading("#2", text="Correo cliente")
     tabla_clientes.heading("#3", text="Telefono cliente")
@@ -41,7 +41,7 @@ def ventana_clientes():
                 tabla_clientes.delete(cliente_temporal)
             for cliente in base.Clientes.find():
                 tabla_clientes.insert('', 0, text=cliente["id_cliente"], values=(cliente["nombre"]
-                                      , cliente["correo"], cliente["telefono"]
+                                      , cliente["telefono"], cliente["correo"]
                                       , cliente["Direccion"]))
         except Exception as e:
             messagebox.showerror("Error", f"No se pudieron cargar los cliente: {e}")
@@ -53,15 +53,15 @@ def ventana_clientes():
                 cliente = {
                     "id_cliente": int(id_cliente.get()),
                     "nombre": nombre_cliente.get(),
-                    "correo": correo_cliente.get(),
                     "telefono": telefono_cliente.get(),
+                    "correo": correo_cliente.get(),
                     "Direccion": direccion_cliente.get()
                 }
                 base.Clientes.insert_one(cliente)
                 id_cliente.delete(0, tk.END)
                 nombre_cliente.delete(0, tk.END)
-                correo_cliente.delete(0, tk.END)
                 telefono_cliente.delete(0, tk.END)
+                correo_cliente.delete(0, tk.END)
                 direccion_cliente.delete(0, tk.END)
                 mostrar_clientes()
             except Exception as e:
@@ -87,8 +87,8 @@ def ventana_clientes():
             selected_item = tabla_clientes.selection()[0]
             id_cli = tabla_clientes.item(selected_item, "text")
             nuevo_nombre = nombre_cliente.get()
-            nuevo_correo = correo_cliente.get()
             nuevo_telefono = telefono_cliente.get()
+            nuevo_correo = correo_cliente.get()
             nueva_direccion = direccion_cliente.get()
 
             if len(nuevo_nombre) == 0:
@@ -107,13 +107,13 @@ def ventana_clientes():
             base.Clientes.update_one(
                 {"id_cliente": int(id_cli)},
                 {"$set": {"nombre_cliente": nuevo_nombre}},
-                {"$set": {"correo_cliente": nuevo_correo}},
                 {"$set": {"telefono_cliente": nuevo_telefono}},
+                {"$set": {"correo_cliente": nuevo_correo}},
                 {"$set": {"direccion_cliente": direccion_cliente}}
             )
             nombre_cliente.delete(0, tk.END)
-            correo_cliente.delete(0, tk.END)
             telefono_cliente.delete(0, tk.END)
+            correo_cliente.delete(0, tk.END)
             direccion_cliente.delete(0, tk.END)
             mostrar_clientes()
         except IndexError:
@@ -128,22 +128,22 @@ def ventana_clientes():
     tk.Label(ventana_cli, text="Nombre cliente").grid(row=2, column=0)
     nombre_cliente = tk.Entry(ventana_cli)
     nombre_cliente.grid(row=2, column=1)
-
-    tk.Label(ventana_cli, text="Correo cliente").grid(row=3, column=0)
-    correo_cliente = tk.Entry(ventana_cli)
-    correo_cliente.grid(row=3, column=1)
-
-    tk.Label(ventana_cli, text="Teléfono cliente").grid(row=4, column=0)
+    
+    tk.Label(ventana_cli, text="Teléfono cliente").grid(row=2, column=0)
     telefono_cliente = tk.Entry(ventana_cli)
-    telefono_cliente.grid(row=4, column=1)
+    telefono_cliente.grid(row=3, column=1)
+    
+    tk.Label(ventana_cli, text="Correo cliente").grid(row=2, column=0)
+    correo_cliente = tk.Entry(ventana_cli)
+    correo_cliente.grid(row=4, column=1)
 
-    tk.Label(ventana_cli, text="Direccion cliente").grid(row=5, column=0)
+    tk.Label(ventana_cli, text="Direccion cliente").grid(row=2, column=0)
     direccion_cliente = tk.Entry(ventana_cli)
     direccion_cliente.grid(row=5, column=1)
 
-    tk.Button(ventana_cli, text="Crear", command=crear_cliente, bg="light green", fg="black").grid(row=6, column=0, pady=10)
-    tk.Button(ventana_cli, text="Modificar", command=modificar_cliente, bg="light yellow", fg="black").grid(row=6, column=1, pady=10)
-    tk.Button(ventana_cli, text="Eliminar", command=eliminar_cliente, bg="red", fg="black").grid(row=6, column=2, pady=10)
+    tk.Button(ventana_cli, text="Crear", command=crear_cliente, bg="light green", fg="black").grid(row=3, column=0, pady=10)
+    tk.Button(ventana_cli, text="Modificar", command=modificar_cliente, bg="light yellow", fg="black").grid(row=3, column=1, pady=10)
+    tk.Button(ventana_cli, text="Eliminar", command=eliminar_cliente, bg="red", fg="black").grid(row=3, column=2, pady=10)
 
     # Cargar los clientes inicialmente
     mostrar_clientes()
@@ -242,12 +242,12 @@ def ventana_departamentos():
 def ventana_empleados():
     ventana_emple = tk.Toplevel()
     ventana_emple.title("Gestión de Empleados")
-    ventana_emple.geometry("1400x1000")
+    ventana_emple.geometry("1200x600")
 
     # Tabla para mostrar los empleados
-    tabla_empleados = ttk.Treeview(ventana_emple, columns=("ID empleado","Nombre empleado","Salario empleado","Teléfono empleado","Correo empleado","Departamento","Horario"))
+    tabla_empleados = ttk.Treeview(ventana_emple, columns=7)
     tabla_empleados.grid(row=0, column=0, columnspan=7, pady=10)
-    tabla_empleados.heading("#0", text="ID empleado")
+    tabla_empleados.heading("#0", text="ID Empleado")
     tabla_empleados.heading("#1", text="Nombre empleado")
     tabla_empleados.heading("#2", text="Salario empleado")
     tabla_empleados.heading("#3", text="Teléfono empleado")
@@ -318,8 +318,8 @@ def ventana_empleados():
             nuevo_salario = salario_empleado.get()
             nuevo_telefono = telefono_empleado.get()
             nuevo_correo = correo_empleado.get()
-            departamento_nuevo = combo_departamento.get()
-            horario_nuevo = combo_horario.get()
+            departamento_seleccionado = combo_departamento.get().split(" - ")[0]
+            horario_seleccionado = combo_horario.get().split(" - ")[0]
 
             if len(nuevo_nombre) == 0:
                 messagebox.showerror("Error", "El nombre no puede estar vacío.")
@@ -336,14 +336,6 @@ def ventana_empleados():
             if len(nuevo_correo) == 0:
                 messagebox.showerror("Error", "El correo no puede estar vacío.")
                 return
-
-            if not departamento_nuevo:
-                messagebox.showerror("Error", "El departamento no puede estar vacío.")
-                return
-
-            if not horario_nuevo:
-                messagebox.showerror("Error", "El horario no puede estar vacío.")
-                return
             
             base.Empleados.update_one(
                 {"id_empleado": int(id_emple)}, 
@@ -351,8 +343,8 @@ def ventana_empleados():
                 {"$set": {"salario": nuevo_salario}},
                 {"$set": {"telefono": nuevo_telefono}},
                 {"$set": {"correo": nuevo_correo}},
-                {"$set": {"id_departamento": int(departamento_nuevo.split(" - ")[0])}},
-                {"$set": {"id_horario": int(horario_nuevo.split(" - ")[0])}}
+                {"$set": {"id_departamento": int(departamento_seleccionado)}},
+                {"$set": {"id_horario": int(horario_seleccionado)}}
             )
             nombre_empleado.delete(0, tk.END)
             nombre_empleado.delete(0, tk.END)
@@ -368,7 +360,7 @@ def ventana_empleados():
             messagebox.showerror("Error", f"No se pudo modificar el empleado: {e}")
 
    # Campos de entrada y botones para empleado
-    tk.Label(ventana_emple, text="ID empleado").grid(row=1, column=0)
+    tk.Label(ventana_emple, text="ID Empleado").grid(row=1, column=0)
     id_empleado = tk.Entry(ventana_emple)
     id_empleado.grid(row=1, column=1)
 
@@ -393,22 +385,22 @@ def ventana_empleados():
                  base.Departamentos.find({}, {"_id": 0, "id_departamento": 1, "Descripcion": 1})]
     departamentos_combo = [f'{departamento["id_departamento"]} - {departamento["Descripcion"]}' for departamento in departamentos]
 
-    tk.Label(ventana_emple, text="ID departamento:").grid(row=6, column=0)
-    combo_departamento = ttk.Combobox(ventana_emple, values=departamentos_combo, state="readonly")
-    combo_departamento.grid(row=6, column=1)
+    tk.Label(ventana_emple, text="ID departamento:").grid(row=6, column=0, sticky="w", pady=5)
+    combo_departamento = ttk.Combobox(ventana_emple, values=departamentos_combo, state="readonly", width=28)
+    combo_departamento.grid(row=6, column=1, columnspan=2, pady=5)
     
     # Obtener horarios
     horarios = [{"id_horario": horario["id_horario"], "Turno": horario["Turno"]} for horario in
                  base.Horarios.find({}, {"_id": 0, "id_horario": 1, "Turno": 1})]
-    horarios_combo = [f'{horario["id_horario"]} - {horario["Turno"]}' for horario in horarios]
+    horarios_combo = [f'{horario["id_horario"]} - {horario["Descripcion"]}' for horario in horarios]
 
-    tk.Label(ventana_emple, text="ID horario:").grid(row=7, column=0)
-    combo_horario = ttk.Combobox(ventana_emple, values=horarios_combo, state="readonly")
-    combo_horario.grid(row=7, column=1)
+    tk.Label(ventana_emple, text="ID horario:").grid(row=7, column=0, sticky="w", pady=5)
+    combo_horario = ttk.Combobox(ventana_emple, values=horarios_combo, state="readonly", width=28)
+    combo_horario.grid(row=7, column=1, columnspan=2, pady=5)
 
-    tk.Button(ventana_emple, text="Crear", command=crear_empleado, bg="light green", fg="black").grid(row=8, column=0, pady=10)
-    tk.Button(ventana_emple, text="Modificar", command=modificar_empleado, bg="light yellow", fg="black").grid(row=8, column=1, pady=10)
-    tk.Button(ventana_emple, text="Eliminar", command=eliminar_empleado, bg="red", fg="black").grid(row=8, column=2, pady=10)
+    tk.Button(ventana_emple, text="Crear", command=crear_empleado, bg="light green", fg="black").grid(row=3, column=0, pady=10)
+    tk.Button(ventana_emple, text="Modificar", command=modificar_empleado, bg="light yellow", fg="black").grid(row=3, column=1, pady=10)
+    tk.Button(ventana_emple, text="Eliminar", command=eliminar_empleado, bg="red", fg="black").grid(row=3, column=2, pady=10)
 
     # Cargar los empleados inicialmente
     mostrar_empleados()
