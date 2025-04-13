@@ -413,6 +413,255 @@ def ventana_empleados():
     # Cargar los empleados inicialmente
     mostrar_empleados()
 
+# Función para abrir la ventana de gestión de habitaciones
+def ventana_habitaciones():
+    ventana_dep = tk.Toplevel()
+    ventana_dep.title("Gestión de Habitaciones")
+    ventana_dep.geometry("850x450")
+
+    # Tabla para mostrar habitaciones
+    tabla_habitaciones = ttk.Treeview(ventana_dep, columns=("IdHabitacion", "Habitacion", "Descripción", "Precio", "Estado"), show="headings")
+    tabla_habitaciones.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_habitaciones.heading("#0", text="IdHabitacion")
+    tabla_habitaciones.heading("#1", text="Habitacion")
+    tabla_habitaciones.heading("#2", text="Descripción")
+    tabla_habitaciones.heading("#3", text="Precio")
+    tabla_habitaciones.heading("#4", text="Estado")
+
+    # Función para mostrar habitaciones
+    def mostrar_habitaciones():
+        try:
+            registros = tabla_habitaciones.get_children()
+            for registro in registros:
+                tabla_habitaciones.delete(registro)
+            for documento in base.Habitaciones.find():
+                tabla_habitaciones.insert('', 0, text=documento["id_habitacion"],
+                                          values=(
+                                              documento["numero"],
+                                              documento["Descripcion"],
+                                              documento["precio"],
+                                              documento["estado"]
+                                          ))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pueden cargar las habitaciones: {e}")
+
+    # Función para crear habitacion
+    def crear_habitacion():
+        if len(id_habitacion.get()) != 0 and len(numero.get()) != 0 and len(descripcion.get()) != 0 and len(precio.get()) != 0 and len(estado.get()) != 0:
+            try:
+                documento = {
+                    "id_habitacion": int(id_habitacion.get()),
+                    "numero": int(numero.get()),
+                    "Descripcion": descripcion.get(),
+                    "precio": int(precio.get()),
+                    "estado": (estado.get())
+                }
+
+                base.Habitaciones.insert_one(documento)
+                id_habitacion.delete(0, tk.END)
+                numero.delete(0, tk.END)
+                descripcion.delete(0, tk.END)
+                precio.delete(0, tk.END)
+                estado.delete(0, tk.END)
+
+                mostrar_habitaciones()
+
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear la habitacion: {e}")
+        else:
+            messagebox.showerror("Error", "Los campos no pueden estar vacíos")
+
+    # Función para eliminar habitacion
+    def eliminar_habitacion():
+        try:
+            selected_item = tabla_habitaciones.selection()[0]
+            id_dep = tabla_habitaciones.item(selected_item, "text")
+            base.Habitaciones.delete_one({"id_habitacion": int(id_dep)})
+            mostrar_habitaciones()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona una habitacion para eliminar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar la habitacion: {e}")
+
+            # Función para modificar habitacion
+    def modificar_habitacion():
+        try:
+            selected_item = tabla_habitaciones.selection()[0]
+            id_dep = tabla_habitaciones.item(selected_item, "text")
+
+            nuevo_numero = numero.get()
+            nueva_descripcion = descripcion.get()
+            nuevo_precio = precio.get()
+            nuevo_estado = estado.get()
+
+            if not nuevo_numero or not nueva_descripcion or not nuevo_precio or not nuevo_estado:
+                messagebox.showerror("Error", "La descripción no puede estar vacía")
+                return
+
+            base.Habitaciones.update_one(
+                {"id_habitacion": int(id_dep)},
+                {"$set": {
+                    "numero": int(nuevo_numero),
+                    "Descripcion": nueva_descripcion,
+                    "precio": int(nuevo_precio),
+                    "estado": nuevo_estado
+                }}
+            )
+            numero.delete(0, tk.END)
+            descripcion.delete(0, tk.END)
+            precio.delete(0, tk.END)
+            estado.delete(0, tk.END)
+
+            mostrar_habitaciones()
+
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona una habitacion para modificar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo modificar la habitacion: {e}")
+
+    # Campos de entrada y botones para departamento
+    tk.Label(ventana_dep, text="id_habitacion").grid(row=1, column=0)
+    id_habitacion = tk.Entry(ventana_dep)
+    id_habitacion.grid(row=1, column=1)
+
+    tk.Label(ventana_dep, text="Numero de Habitacion").grid(row=2, column=0)
+    numero = tk.Entry(ventana_dep)
+    numero.grid(row=2, column=1)
+
+    tk.Label(ventana_dep, text="Descripción").grid(row=3, column=0)
+    descripcion = tk.Entry(ventana_dep)
+    descripcion.grid(row=3, column=1)
+
+    tk.Label(ventana_dep, text="Precio").grid(row=4, column=0)
+    precio = tk.Entry(ventana_dep)
+    precio.grid(row=4, column=1)
+
+    tk.Label(ventana_dep, text="Estado").grid(row=5, column=0)
+    estado = tk.Entry(ventana_dep)
+    estado.grid(row=5, column=1)
+
+    tk.Button(ventana_dep, text="Crear", command=crear_habitacion, bg="light green", fg="black").grid(row=6,
+                                                                                                              column=0,
+                                                                                                              pady=10)
+    tk.Button(ventana_dep, text="Modificar", command=modificar_habitacion, bg="light yellow", fg="black").grid(
+        row=6, column=1, pady=10)
+
+    tk.Button(ventana_dep, text="Eliminar", command=eliminar_habitacion, bg="red", fg="black").grid(row=6,
+                                                                                                            column=2,
+                                                                                                            pady=10)
+
+    # Cargar las habitaciones inicialmente
+    mostrar_habitaciones()
+
+# Función para abrir la ventana de gestión de sedes
+def ventana_sedes():
+    ventana_dep = tk.Toplevel()
+    ventana_dep.title("Gestión de Sedes")
+    ventana_dep.geometry("850x450")
+
+    # Tabla para mostrar sedes disponibles
+    tabla_sedes = ttk.Treeview(ventana_dep,
+                               columns=("IdSede", "Descripción", "Ubicacion", "Servicios"),
+                               show="headings")
+    tabla_sedes.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_sedes.heading("#0", text="IdSede")
+    tabla_sedes.heading("#1", text="Descripción")
+    tabla_sedes.heading("#2", text="Ubicacion")
+    tabla_sedes.heading("#3", text="Servicios")
+
+    # Función para mostrar sedes
+    def mostrar_sedes():
+        try:
+            registros = tabla_sedes.get_children()
+            for registro in registros:
+                tabla_sedes.delete(registro)
+            for documento in base.Sedes.find():
+                tabla_sedes.insert('', 0, text=documento["id_sede"],
+                                   values=(
+                                       documento["descripcion"],
+                                       documento["ubicación"],
+                                       documento["servicios"]
+                                   ))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar las sedes: {e}")
+
+    # Función para crear sede
+    def crear_sede():
+        if len(id_sede.get()) != 0 and len(descripcion.get()) != 0:
+            try:
+                documento = {
+                    "id_sede": int(id_sede.get()),
+                    "Descripcion": descripcion.get()
+                }
+                base.Sedes.insert_one(documento)
+                id_sedes.delete(0, tk.END)
+                descripcion.delete(0, tk.END)
+                mostrar_sedes()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear la sede: {e}")
+        else:
+            messagebox.showerror("Error", "Los campos no pueden estar vacíos")
+
+            # Función para eliminar sede
+    def eliminar_sede():
+        try:
+            selected_item = tabla_sedes.selection()[0]
+            id_dep = tabla_sedes.item(selected_item, "text")
+            base.Sedes.delete_one({"id_sede": int(id_dep)})
+            mostrar_sedes()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona una sede para eliminar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar la sede: {e}")
+
+            # Función para modificar sede
+    def modificar_sede():
+        try:
+            selected_item = tabla_sedes.selection()[0]
+            id_dep = tabla_sedes.item(selected_item, "text")
+            nueva_descripcion = descripcion.get()
+
+            if len(nueva_descripcion) == 0:
+                messagebox.showerror("Error", "La descripción no puede estar vacía")
+                return
+
+            base.Sedes.update_one(
+                {"id_sede": int(id_dep)},
+                {"$set": {"Descripcion": nueva_descripcion}}
+            )
+            descripcion.delete(0, tk.END)
+            mostrar_sedes()
+        except IndexError:
+            messagebox.showwarning("Advertencia", "Selecciona una sede para modificar")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo modificar la sede: {e}")
+
+        # Campos de entrada y botones para sede
+        tk.Label(ventana_dep, text="descripción").grid(row=1, column=0)
+        descripcion = tk.Entry(ventana_dep)
+        descripcion.grid(row=1, column=1)
+
+        tk.Label(ventana_dep, text="ubicacion").grid(row=2, column=0)
+        ubicacion = tk.Entry(ventana_dep)
+        ubicacion.grid(row=2, column=1)
+
+        tk.Label(ventana_dep, text="servicios").grid(row=3, column=0)
+        servicios = tk.Entry(ventana_dep)
+        servicios.grid(row=3, column=1)
+
+    tk.Button(ventana_dep, text="Crear", command=crear_sede, bg="light green", fg="black").grid(row=5,
+                                                                                                        column=0,
+                                                                                                        pady=10)
+    tk.Button(ventana_dep, text="Modificar", command=modificar_sede, bg="light yellow", fg="black").grid(
+        row=5, column=1, pady=10)
+
+    tk.Button(ventana_dep, text="Eliminar", command=eliminar_sede, bg="red", fg="black").grid(row=5,
+                                                                                                    column=2,
+                                                                                                    pady=10)
+
+    # Cargar las sedes inicialmente
+    mostrar_sedes()
+
 # Función para abrir la ventana de gestión de servicios
 def ventana_servicios():
         ventana_ser = tk.Toplevel()
@@ -1122,8 +1371,8 @@ menu.add_command(label='Gestionar Clientes', command=ventana_clientes)#Shernna
 menu.add_command(label='Gestionar Departamentos', command=ventana_departamentos) #Marco
 menu.add_command(label='Gestionar Empleados', command=ventana_empleados)#Shernna #
 menu.add_command(label='Gestionar Eventos', command=gestionar_eventos) #Keyla
-menu.add_command(label='Gestionar Habitaciones')#Adriela
-menu.add_command(label='Gestionar Sedes de Hotel')#Adriela
+menu.add_command(label='Gestionar Habitaciones', command=ventana_habitaciones)#Adriela
+menu.add_command(label='Gestionar Sedes de Hotel', command=ventana_sedes)#Adriela
 menu.add_command(label='Gestionar Mantenimientos', command = ventana_mantenimientos)#Rachel
 menu.add_command(label='Gestionar Registros', command = ventana_registros)#Rachel
 menu.add_command(label='Gestionar Reservaciones', command=gestionar_reservaciones)  #Keyla
