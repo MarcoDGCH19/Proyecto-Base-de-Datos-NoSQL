@@ -141,9 +141,9 @@ def ventana_clientes():
     direccion_cliente = tk.Entry(ventana_cli)
     direccion_cliente.grid(row=5, column=1)
 
-    tk.Button(ventana_cli, text="Crear", command=crear_cliente, bg="light green", fg="black").grid(row=6, column=0, pady=10)
-    tk.Button(ventana_cli, text="Modificar", command=modificar_cliente, bg="light yellow", fg="black").grid(row=6, column=1, pady=10)
-    tk.Button(ventana_cli, text="Eliminar", command=eliminar_cliente, bg="red", fg="black").grid(row=6, column=2, pady=10)
+    tk.Button(ventana_cli, text="Agregar", command=crear_cliente, bg="#4CAF50", fg="white").grid(row=6, column=0, pady=10)
+    tk.Button(ventana_cli, text="Modificar", command=modificar_cliente, bg="#4CAF50", fg="white").grid(row=6, column=1, pady=10)
+    tk.Button(ventana_cli, text="Eliminar", command=eliminar_cliente, bg="#ca0000", fg="white").grid(row=6, column=2, pady=10)
 
     # Cargar los clientes inicialmente
     mostrar_clientes()
@@ -231,9 +231,9 @@ def ventana_departamentos():
     descripcion = tk.Entry(ventana_dep)
     descripcion.grid(row=2, column=1)
 
-    tk.Button(ventana_dep, text="Crear", command=crear_departamento, bg="light green", fg="black").grid(row=3, column=0, pady=10)
-    tk.Button(ventana_dep, text="Modificar", command=modificar_departamento, bg="light yellow", fg="black").grid(row=3, column=1, pady=10)
-    tk.Button(ventana_dep, text="Eliminar", command=eliminar_departamento, bg="red", fg="black").grid(row=3, column=2, pady=10)
+    tk.Button(ventana_dep, text="Agregar", command=crear_departamento, bg="#4CAF50", fg="white").grid(row=3, column=0, pady=10)
+    tk.Button(ventana_dep, text="Modificar", command=modificar_departamento, bg="#4CAF50", fg="white").grid(row=3, column=1, pady=10)
+    tk.Button(ventana_dep, text="Eliminar", command=eliminar_departamento, bg="#ca0000", fg="white").grid(row=3, column=2, pady=10)
 
     # Cargar los departamentos inicialmente
     mostrar_departamentos()
@@ -406,9 +406,9 @@ def ventana_empleados():
     combo_horario = ttk.Combobox(ventana_emple, values=horarios_combo, state="readonly")
     combo_horario.grid(row=7, column=1)
 
-    tk.Button(ventana_emple, text="Crear", command=crear_empleado, bg="light green", fg="black").grid(row=8, column=0, pady=10)
-    tk.Button(ventana_emple, text="Modificar", command=modificar_empleado, bg="light yellow", fg="black").grid(row=8, column=1, pady=10)
-    tk.Button(ventana_emple, text="Eliminar", command=eliminar_empleado, bg="red", fg="black").grid(row=8, column=2, pady=10)
+    tk.Button(ventana_emple, text="Agregar", command=crear_empleado, bg="#4CAF50", fg="white").grid(row=8, column=0, pady=10)
+    tk.Button(ventana_emple, text="Modificar", command=modificar_empleado, bg="#4CAF50", fg="white").grid(row=8, column=1, pady=10)
+    tk.Button(ventana_emple, text="Eliminar", command=eliminar_empleado, bg="#ca0000", fg="white").grid(row=8, column=2, pady=10)
 
     # Cargar los empleados inicialmente
     mostrar_empleados()
@@ -417,7 +417,7 @@ def ventana_empleados():
 def ventana_habitaciones():
     ventana_dep = tk.Toplevel()
     ventana_dep.title("Gestión de Habitaciones")
-    ventana_dep.geometry("850x450")
+    ventana_dep.geometry("1100x450")
 
     # Tabla para mostrar habitaciones
     tabla_habitaciones = ttk.Treeview(ventana_dep, columns=("IdHabitacion", "Habitacion", "Descripción", "Precio", "Estado"), show="headings")
@@ -540,13 +540,13 @@ def ventana_habitaciones():
     estado = tk.Entry(ventana_dep)
     estado.grid(row=5, column=1)
 
-    tk.Button(ventana_dep, text="Crear", command=crear_habitacion, bg="light green", fg="black").grid(row=6,
+    tk.Button(ventana_dep, text="Agregar", command=crear_habitacion, bg="#4CAF50", fg="white").grid(row=6,
                                                                                                               column=0,
                                                                                                               pady=10)
-    tk.Button(ventana_dep, text="Modificar", command=modificar_habitacion, bg="light yellow", fg="black").grid(
+    tk.Button(ventana_dep, text="Modificar", command=modificar_habitacion, bg="#4CAF50", fg="white").grid(
         row=6, column=1, pady=10)
 
-    tk.Button(ventana_dep, text="Eliminar", command=eliminar_habitacion, bg="red", fg="black").grid(row=6,
+    tk.Button(ventana_dep, text="Eliminar", command=eliminar_habitacion, bg="#ca0000", fg="white").grid(row=6,
                                                                                                             column=2,
                                                                                                             pady=10)
 
@@ -554,113 +554,156 @@ def ventana_habitaciones():
     mostrar_habitaciones()
 
 # Función para abrir la ventana de gestión de sedes
-def ventana_sedes():
+def ventana_hoteles():
     ventana_dep = tk.Toplevel()
     ventana_dep.title("Gestión de Sedes")
-    ventana_dep.geometry("850x450")
+    ventana_dep.geometry("1000x600")
+
+    frame = tk.Frame(ventana_dep, padx=20, pady=20)
+    frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
     # Tabla para mostrar sedes disponibles
-    tabla_sedes = ttk.Treeview(ventana_dep,
-                               columns=("IdSede", "Descripción", "Ubicacion", "Servicios"),
-                               show="headings")
-    tabla_sedes.grid(row=0, column=0, columnspan=2, pady=10)
-    tabla_sedes.heading("#0", text="IdSede")
-    tabla_sedes.heading("#1", text="Descripción")
-    tabla_sedes.heading("#2", text="Ubicacion")
-    tabla_sedes.heading("#3", text="Servicios")
+    tabla_hoteles = ttk.Treeview(ventana_dep,
+                                 columns=("IdHotel", "Descripción", "Ubicación", "Servicios"),
+                                 show="headings")
+    tabla_hoteles.grid(row=0, column=0, columnspan=2, pady=10)
+
+    tabla_hoteles.heading("IdHotel", text="IdHotel")
+    tabla_hoteles.heading("Descripción", text="Descripción")
+    tabla_hoteles.heading("Ubicación", text="Ubicación")
+    tabla_hoteles.heading("Servicios", text="Servicios")
+
+    tk.Label(frame, text="Id Hotel:").grid(row=1, column=0, sticky="w", pady=5)
+    id_hotel = tk.Entry(frame, width=30)
+    id_hotel.grid(row=1, column=1, columnspan=2, pady=5)
+
+    tk.Label(frame, text="Descripción:").grid(row=2, column=0, sticky="w", pady=5)
+    descripcion = tk.Entry(frame, width=30)
+    descripcion.grid(row=2, column=1, columnspan=2, pady=5)
+
+    tk.Label(frame, text="Ubicación:").grid(row=3, column=0, sticky="w", pady=5)
+    ubicación = tk.Entry(frame, width=30)
+    ubicación.grid(row=3, column=1, columnspan=2, pady=5)
+
+    # Lista de servicios
+    servicios = [{"id_servicio": s["id_servicio"], "Descripcion": s["Descripcion"]} for s in base.Servicios.find({}, {"_id": 0})]
+    servicios_combo = [f'{s["id_servicio"]} - {s["Descripcion"]}' for s in servicios]
+
+    tk.Label(frame, text="Servicios:").grid(row=4, column=0, sticky="w", pady=5)
+    combo_servicios = ttk.Combobox(frame, values=servicios_combo, state="readonly", width=28)
+    combo_servicios.grid(row=4, column=1, columnspan=2, pady=5)
 
     # Función para mostrar sedes
-    def mostrar_sedes():
-        try:
-            registros = tabla_sedes.get_children()
-            for registro in registros:
-                tabla_sedes.delete(registro)
-            for documento in base.Sedes.find():
-                tabla_sedes.insert('', 0, text=documento["id_sede"],
-                                   values=(
-                                       documento["descripcion"],
-                                       documento["ubicación"],
-                                       documento["servicios"]
-                                   ))
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudieron cargar las sedes: {e}")
+    def mostrar_hoteles():
+        registros = tabla_hoteles.get_children()
+        for r in registros:
+            tabla_hoteles.delete(r)
 
+        for doc in base.Hoteles.find():
+            servicios = ", ".join(map(str, doc.get("servicios", [])))
+            tabla_hoteles.insert('', 'end',
+                                 values=(
+                                     doc.get("id_hotel", ""),
+                                     doc.get("descripcion", ""),
+                                     doc.get("ubicación", ""),
+                                     servicios
+                                 )
+                                 )
     # Función para crear sede
-    def crear_sede():
-        if len(id_sede.get()) != 0 and len(descripcion.get()) != 0:
+    def crear_hotel():
+        if id_hotel.get() and descripcion.get() and ubicación.get() and combo_servicios.get():
             try:
+                servicio = combo_servicios.get().split(" - ")[0]
                 documento = {
-                    "id_sede": int(id_sede.get()),
-                    "Descripcion": descripcion.get()
+                    "id_hotel": int(id_hotel.get()),
+                    "descripcion": descripcion.get(),
+                    "ubicación": ubicación.get(),
+                    "servicios": [int(servicio)]
                 }
-                base.Sedes.insert_one(documento)
-                id_sedes.delete(0, tk.END)
+
+                base.Hoteles.insert_one(documento)
+
+                id_hotel.delete(0, tk.END)
                 descripcion.delete(0, tk.END)
-                mostrar_sedes()
+                ubicación.delete(0, tk.END)
+                combo_servicios.set("")
+
+                mostrar_hoteles()
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo crear la sede: {e}")
+                messagebox.showerror("Error", f"No se pudo crear el hotel: {e}")
         else:
-            messagebox.showerror("Error", "Los campos no pueden estar vacíos")
+            messagebox.showerror("Error", "Todos los campos son obligatorios.")
 
-            # Función para eliminar sede
-    def eliminar_sede():
-        try:
-            selected_item = tabla_sedes.selection()[0]
-            id_dep = tabla_sedes.item(selected_item, "text")
-            base.Sedes.delete_one({"id_sede": int(id_dep)})
-            mostrar_sedes()
-        except IndexError:
-            messagebox.showwarning("Advertencia", "Selecciona una sede para eliminar")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo eliminar la sede: {e}")
+    tk.Button(frame, text="Agregar", command=crear_hotel,
+              bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5).grid(
+        row=6, column=0, columnspan=3, pady=10, sticky="ew")
 
-            # Función para modificar sede
-    def modificar_sede():
-        try:
-            selected_item = tabla_sedes.selection()[0]
-            id_dep = tabla_sedes.item(selected_item, "text")
-            nueva_descripcion = descripcion.get()
+    # Función para eliminar sede
+    def eliminar_hotel():
+        if id_hotel.get():
+            try:
+                resultado = base.Hoteles.delete_one({"id_hotel": int(id_hotel.get())})
 
-            if len(nueva_descripcion) == 0:
-                messagebox.showerror("Error", "La descripción no puede estar vacía")
-                return
+                if resultado.deleted_count > 0:
+                    messagebox.showinfo("Éxito", "Hotel eliminado correctamente.")
+                    mostrar_hoteles()
+                else:
+                    messagebox.showwarning("No encontrado", "No se encontró un hotel con ese ID.")
 
-            base.Sedes.update_one(
-                {"id_sede": int(id_dep)},
-                {"$set": {"Descripcion": nueva_descripcion}}
-            )
-            descripcion.delete(0, tk.END)
-            mostrar_sedes()
-        except IndexError:
-            messagebox.showwarning("Advertencia", "Selecciona una sede para modificar")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo modificar la sede: {e}")
+                # Limpiar campos
+                id_hotel.delete(0, tk.END)
+                descripcion.delete(0, tk.END)
+                ubicación.delete(0, tk.END)
+                combo_servicios.set("")
 
-        # Campos de entrada y botones para sede
-        tk.Label(ventana_dep, text="descripción").grid(row=1, column=0)
-        descripcion = tk.Entry(ventana_dep)
-        descripcion.grid(row=1, column=1)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo eliminar el hotel: {e}")
+        else:
+            messagebox.showerror("Error", "Debes ingresar un ID de hotel para eliminar.")
 
-        tk.Label(ventana_dep, text="ubicacion").grid(row=2, column=0)
-        ubicacion = tk.Entry(ventana_dep)
-        ubicacion.grid(row=2, column=1)
+    tk.Button(frame, text="Eliminar", command=eliminar_hotel,
+              bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5).grid(
+        row=8, column=0, columnspan=3, pady=5, sticky="ew")
 
-        tk.Label(ventana_dep, text="servicios").grid(row=3, column=0)
-        servicios = tk.Entry(ventana_dep)
-        servicios.grid(row=3, column=1)
+    # Función para modificar sede
+    def modificar_hotel():
+        if id_hotel.get() and descripcion.get() and ubicación.get() and combo_servicios.get():
+            try:
+                servicio = combo_servicios.get().split(" - ")[0]
+                nuevo_documento = {
+                    "descripcion": descripcion.get(),
+                    "ubicación": ubicación.get(),
+                    "servicios": [int(servicio)]
+                }
 
-    tk.Button(ventana_dep, text="Crear", command=crear_sede, bg="light green", fg="black").grid(row=5,
-                                                                                                        column=0,
-                                                                                                        pady=10)
-    tk.Button(ventana_dep, text="Modificar", command=modificar_sede, bg="light yellow", fg="black").grid(
-        row=5, column=1, pady=10)
+                resultado = base.Hoteles.update_one(
+                    {"id_hotel": int(id_hotel.get())},
+                    {"$set": nuevo_documento}
+                )
 
-    tk.Button(ventana_dep, text="Eliminar", command=eliminar_sede, bg="red", fg="black").grid(row=5,
-                                                                                                    column=2,
-                                                                                                    pady=10)
+                if resultado.modified_count > 0:
+                    messagebox.showinfo("Éxito", "Hotel modificado correctamente.")
+                    mostrar_hoteles()
+                else:
+                    messagebox.showwarning("Sin cambios", "No se encontró el hotel o los datos no cambiaron.")
+
+                # Limpiar campos
+                id_hotel.delete(0, tk.END)
+                descripcion.delete(0, tk.END)
+                ubicación.delete(0, tk.END)
+                combo_servicios.set("")
+
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo modificar el hotel: {e}")
+        else:
+            messagebox.showerror("Error", "Todos los campos son obligatorios.")
+
+    tk.Button(frame, text="Modificar", command=modificar_hotel,
+              bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5).grid(
+        row=7, column=0, columnspan=3, pady=5, sticky="ew")
 
     # Cargar las sedes inicialmente
-    mostrar_sedes()
+    mostrar_hoteles()
 
 # Función para abrir la ventana de gestión de servicios
 def ventana_servicios():
@@ -746,12 +789,12 @@ def ventana_servicios():
         descripcion = tk.Entry(ventana_ser)
         descripcion.grid(row=2, column=1)
 
-        tk.Button(ventana_ser, text="Crear", command=crear_servicio, bg="light green", fg="black").grid(row=3,
+        tk.Button(ventana_ser, text="Agregar", command=crear_servicio, bg="#4CAF50", fg="white").grid(row=3,
                                                                                                             column=0,
                                                                                                             pady=10)
-        tk.Button(ventana_ser, text="Modificar", command=modificar_servicio, bg="light yellow", fg="black").grid(
+        tk.Button(ventana_ser, text="Modificar", command=modificar_servicio, bg="#4CAF50", fg="white").grid(
             row=3, column=1, pady=10)
-        tk.Button(ventana_ser, text="Eliminar", command=eliminar_servicio, bg="red", fg="black").grid(row=3,
+        tk.Button(ventana_ser, text="Eliminar", command=eliminar_servicio, bg="#ca0000", fg="white").grid(row=3,
                                                                                                           column=2,
                                                                                                           pady=10)
 
@@ -880,7 +923,7 @@ def ventana_facturas():
 
             combo_habitaciones.bind("<<ComboboxSelected>>", seleccionar_habitacion)
 
-            tk.Button(ventana_fac, text="Crear", command=crear_factura, bg="light green", fg="black").grid(row=5, column=1)
+            tk.Button(ventana_fac, text="Agregar", command=crear_factura, bg="#4CAF50", fg="white").grid(row=5, column=1)
 
         # Cargar las facturas inicialmente
         mostrar_facturas()
@@ -1021,11 +1064,11 @@ def ventana_mantenimientos():
 
                 
     # Botón de Crear/Eliminar con estilo
-    boton_crear = tk.Button(frame, text="Crear Mantenimiento", command=crear_mantenimiento,
+    boton_crear = tk.Button(frame, text="Agregar", command=crear_mantenimiento,
         bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
     boton_crear.grid(row=5, column=0, columnspan=3, pady=10, sticky="ew")
     
-    boton_eliminar = tk.Button(frame, text="Eliminar Mantenimiento", command=eliminar_mantenimiento,
+    boton_eliminar = tk.Button(frame, text="Eliminar", command=eliminar_mantenimiento,
         bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
     boton_eliminar.grid(row=6, column=0, columnspan=3, pady=10, sticky="ew")
     
@@ -1153,11 +1196,11 @@ def ventana_registros():
 
                 
     # Botón de Crear/Eliminar con estilo
-    boton_crear = tk.Button(frame, text="Crear Registro", command=crear_registro,
+    boton_crear = tk.Button(frame, text="Agregar", command=crear_registro,
         bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
     boton_crear.grid(row=5, column=0, columnspan=3, pady=10, sticky="ew")
     
-    boton_eliminar = tk.Button(frame, text="Eliminar Registro", command=eliminar_registro,
+    boton_eliminar = tk.Button(frame, text="Eliminar", command=eliminar_registro,
         bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
     boton_eliminar.grid(row=6, column=0, columnspan=3, pady=10, sticky="ew")
     
@@ -1176,7 +1219,7 @@ def gestionar_eventos():
     tabla_eventos.heading("fecha", text="Fecha")
     tabla_eventos.heading("lugar", text="Lugar")
     tabla_eventos.heading("descripcion", text="Descripción")
-    tabla_eventos.pack(fill=tk.BOTH, expand=True, pady=10)
+    tabla_eventos.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
     def actualizar_tabla():
         tabla_eventos.delete(*tabla_eventos.get_children())
@@ -1237,7 +1280,7 @@ def gestionar_eventos():
                 messagebox.showerror("Error", str(e))
 
 
-        tk.Button(popup, text="Guardar", command=guardar_evento, bg="lightblue").pack(pady=10)
+        tk.Button(popup, text="Guardar", command=guardar_evento, bg="#9b59b6").pack(pady=10)
 
     def eliminar_evento():
         seleccionado = tabla_eventos.selection()
@@ -1256,9 +1299,15 @@ def gestionar_eventos():
 
     # Botones
     frame_botones = tk.Frame(ventana_eventos)
-    frame_botones.pack(pady=5)
-    tk.Button(frame_botones, text="Agregar Evento", command=agregar_evento).pack(side=tk.LEFT, padx=10)
-    tk.Button(frame_botones, text="Eliminar Evento", command=eliminar_evento).pack(side=tk.LEFT, padx=10)
+    frame_botones.grid(row=2, column=0, pady=10)
+
+    boton_crear = tk.Button(frame_botones, text="Agregar", command=agregar_evento,
+                            bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_crear.grid(row=0, column=0, padx=5)
+
+    boton_eliminar = tk.Button(frame_botones, text="Eliminar", command=eliminar_evento,
+                               bg="#ca0000", fg="white", font=("Arial", 12, "bold"), padx=10, pady=5)
+    boton_eliminar.grid(row=0, column=1, padx=5)
 
     actualizar_tabla()
 
@@ -1372,7 +1421,7 @@ menu.add_command(label='Gestionar Departamentos', command=ventana_departamentos)
 menu.add_command(label='Gestionar Empleados', command=ventana_empleados)#Shernna #
 menu.add_command(label='Gestionar Eventos', command=gestionar_eventos) #Keyla
 menu.add_command(label='Gestionar Habitaciones', command=ventana_habitaciones)#Adriela
-menu.add_command(label='Gestionar Sedes de Hotel', command=ventana_sedes)#Adriela
+menu.add_command(label='Gestionar Sedes de Hotel', command=ventana_hoteles)#Adriela
 menu.add_command(label='Gestionar Mantenimientos', command = ventana_mantenimientos)#Rachel
 menu.add_command(label='Gestionar Registros', command = ventana_registros)#Rachel
 menu.add_command(label='Gestionar Reservaciones', command=gestionar_reservaciones)  #Keyla
