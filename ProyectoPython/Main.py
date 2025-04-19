@@ -106,10 +106,10 @@ def ventana_clientes():
 
             base.Clientes.update_one(
                 {"id_cliente": int(id_cli)},
-                {"$set": {"nombre_cliente": nuevo_nombre}},
-                {"$set": {"correo_cliente": nuevo_correo}},
-                {"$set": {"telefono_cliente": nuevo_telefono}},
-                {"$set": {"direccion_cliente": direccion_cliente}}
+                {"$set": {"nombre": nuevo_nombre,
+                          "correo": nuevo_correo,
+                          "telefono": nuevo_telefono,
+                          "Direccion": nueva_direccion}}
             )
             nombre_cliente.delete(0, tk.END)
             correo_cliente.delete(0, tk.END)
@@ -346,13 +346,13 @@ def ventana_empleados():
                 return
             
             base.Empleados.update_one(
-                {"id_empleado": int(id_emple)}, 
-                {"$set": {"nombre": nuevo_nombre}},
-                {"$set": {"salario": nuevo_salario}},
-                {"$set": {"telefono": nuevo_telefono}},
-                {"$set": {"correo": nuevo_correo}},
-                {"$set": {"id_departamento": int(departamento_nuevo.split(" - ")[0])}},
-                {"$set": {"id_horario": int(horario_nuevo.split(" - ")[0])}}
+                {"id_empleado": int(id_emple)},
+                {"$set": {"nombre": nuevo_nombre,
+                          "salario": nuevo_salario,
+                          "telefono": nuevo_telefono,
+                          "correo": nuevo_correo,
+                          "id_departamento": int(departamento_nuevo.split(" - ")[0]),
+                          "id_horario": int(horario_nuevo.split(" - ")[0])}}
             )
             nombre_empleado.delete(0, tk.END)
             nombre_empleado.delete(0, tk.END)
