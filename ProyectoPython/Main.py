@@ -420,13 +420,15 @@ def ventana_habitaciones():
     ventana_dep.geometry("1100x450")
 
     # Tabla para mostrar habitaciones
-    tabla_habitaciones = ttk.Treeview(ventana_dep, columns=("IdHabitacion", "Habitacion", "Descripción", "Precio", "Estado"), show="headings")
-    tabla_habitaciones.grid(row=0, column=0, columnspan=2, pady=10)
+    tabla_habitaciones = ttk.Treeview(ventana_dep, columns=("IdHabitacion", "Habitacion", "Descripción", "Precio", "Estado","id_Hotel"), show="headings")
+    tabla_habitaciones.grid(row=0, column=0, columnspan=6, pady=10)
     tabla_habitaciones.heading("#0", text="IdHabitacion")
     tabla_habitaciones.heading("#1", text="Habitacion")
     tabla_habitaciones.heading("#2", text="Descripción")
     tabla_habitaciones.heading("#3", text="Precio")
     tabla_habitaciones.heading("#4", text="Estado")
+    tabla_habitaciones.heading("#5", text="id_Hotel")
+    tabla_habitaciones.heading("#6", text="id_habitacion")
 
     # Función para mostrar habitaciones
     def mostrar_habitaciones():
@@ -440,22 +442,29 @@ def ventana_habitaciones():
                                               documento["numero"],
                                               documento["Descripcion"],
                                               documento["precio"],
-                                              documento["estado"]
+                                              documento["estado"],
+                                              documento["id_hotel"],
+                                              documento["id_habitacion"]
                                           ))
         except Exception as e:
             messagebox.showerror("Error", f"No se pueden cargar las habitaciones: {e}")
 
     # Función para crear habitacion
     def crear_habitacion():
-        if len(id_habitacion.get()) != 0 and len(numero.get()) != 0 and len(descripcion.get()) != 0 and len(precio.get()) != 0 and len(estado.get()) != 0:
+
+        if len(id_habitacion.get()) != 0 and len(numero.get()) != 0 and len(descripcion.get()) != 0 and len(precio.get()) != 0 and len(estado.get()) != 0 and combo_hotel.get() != "":
             try:
+                hotel_seleccionado = combo_hotel.get()
+                id_hotel = hotel_seleccionado.split(" - ")[0]
                 documento = {
                     "id_habitacion": int(id_habitacion.get()),
                     "numero": int(numero.get()),
                     "Descripcion": descripcion.get(),
                     "precio": int(precio.get()),
-                    "estado": (estado.get())
+                    "estado": (estado.get()),
+                    "id_hotel": int(id_hotel)
                 }
+                print(documento)
 
                 base.Habitaciones.insert_one(documento)
                 id_habitacion.delete(0, tk.END)
@@ -493,6 +502,7 @@ def ventana_habitaciones():
             nueva_descripcion = descripcion.get()
             nuevo_precio = precio.get()
             nuevo_estado = estado.get()
+
 
             if not nuevo_numero or not nueva_descripcion or not nuevo_precio or not nuevo_estado:
                 messagebox.showerror("Error", "La descripción no puede estar vacía")
@@ -539,6 +549,26 @@ def ventana_habitaciones():
     tk.Label(ventana_dep, text="Estado").grid(row=5, column=0)
     estado = tk.Entry(ventana_dep)
     estado.grid(row=5, column=1)
+
+    # Obtener los id_hotel+ nombre  hoteles
+    hoteles = [{"id_hotel": hoteles["id_hotel"], "descripcion": hoteles["descripcion"]} for hoteles in
+                    base.Hoteles.find({}, {"_id": 0, "id_hotel": 1, "descripcion": 1})]
+
+    # Formatear los valores para mostrar en el Combobox
+    hoteles_combo = [f'{hoteles["id_hotel"]} - {hoteles["descripcion"]}' for hoteles in hoteles]
+
+    # Crear el Combobox
+    tk.Label(ventana_dep, text="Id Hotel").grid(row=4, column=2)
+    combo_hotel = ttk.Combobox(ventana_dep, values=hoteles_combo, state="readonly")
+    combo_hotel.grid(row=4, column=3)
+
+    # Función para obtener el id_cliente seleccionado
+    def seleccionar_hotel(event):
+        seleccionado = combo_hotel.get()
+        print(f"Seleccionado: {seleccionado}")
+        id_hotel = seleccionado.split(" - ")[0]
+
+    combo_hotel.bind("<<ComboboxSelected>>", seleccionar_hotel)
 
     tk.Button(ventana_dep, text="Agregar", command=crear_habitacion, bg="#4CAF50", fg="white").grid(row=6,
                                                                                                               column=0,
