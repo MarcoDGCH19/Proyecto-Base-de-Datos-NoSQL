@@ -1346,24 +1346,26 @@ def gestionar_eventos():
 def gestionar_reservaciones():
     ventana = tk.Toplevel()
     ventana.title("Gestión de Reservaciones")
-    ventana.geometry("850x450")
+    ventana.geometry("950x450")
 
-    tabla = ttk.Treeview(ventana, columns=("cliente", "entrada", "salida", "cantidad"), show="headings")
+    tabla = ttk.Treeview(ventana, columns=("cliente", "entrada", "salida", "cantidad", "habitacion"), show="headings")
     tabla.heading("cliente", text="Cliente")
     tabla.heading("entrada", text="Fecha Entrada")
     tabla.heading("salida", text="Fecha Salida")
     tabla.heading("cantidad", text="Cantidad Clientes")
+    tabla.heading("habitacion", text="ID Habitación")
     tabla.pack(fill=tk.BOTH, expand=True, pady=10)
 
     def actualizar_tabla():
         tabla.delete(*tabla.get_children())
         for r in base.Reservaciones.find({}, {"_id": 0}):
-            tabla.insert("", tk.END, values=(r["cliente"], r["entrada"], r["salida"], r["cantidad"]))
+            habitacion_id = r.get("id_habitacion", "N/A")
+            tabla.insert("", tk.END, values=(r["cliente"], r["entrada"], r["salida"], r["cantidad"], habitacion_id))
 
     def agregar_reserva():
         popup = tk.Toplevel()
         popup.title("Nueva Reservación")
-        popup.geometry("300x250")
+        popup.geometry("350x400")
         popup.grab_set()
 
         tk.Label(popup, text="Nombre del cliente:").pack()
@@ -1382,16 +1384,30 @@ def gestionar_reservaciones():
         entry_cantidad = tk.Entry(popup)
         entry_cantidad.pack()
 
+        habitaciones = list(base.Habitaciones.find({"estado": "Disponible"}, {"_id": 0}))
+        opciones_hab = [f'{h["id_habitacion"]} - {h["Descripcion"]}' for h in habitaciones]
+
+        tk.Label(popup, text="Seleccione una habitación disponible:").pack()
+        combo_habitacion = ttk.Combobox(popup, values=opciones_hab, state="readonly")
+        combo_habitacion.pack()
+
         def guardar_reserva():
             try:
                 nombre = entry_nombre.get()
                 entrada = datetime.strptime(entry_entrada.get(), "%d/%m/%Y")
                 salida = datetime.strptime(entry_salida.get(), "%d/%m/%Y")
                 cantidad = int(entry_cantidad.get())
+                habitacion_str = combo_habitacion.get()
 
                 if salida < entrada:
                     messagebox.showerror("Error", "La fecha de salida no puede ser anterior a la de entrada.")
                     return
+
+                if not habitacion_str:
+                    messagebox.showerror("Error", "Debe seleccionar una habitación disponible.")
+                    return
+
+                id_habitacion = int(habitacion_str.split(" - ")[0])
 
                 id_reservacion = contador("reservacion")
 
@@ -1400,14 +1416,19 @@ def gestionar_reservaciones():
                     "cliente": nombre,
                     "entrada": entrada.strftime("%d/%m/%Y"),
                     "salida": salida.strftime("%d/%m/%Y"),
-                    "cantidad": cantidad
+                    "cantidad": cantidad,
+                    "id_habitacion": id_habitacion
                 })
 
-                print(f"Reservación registrada con ID #{id_reservacion}")
-                messagebox.showinfo("Reservación registrada", f"Reservación exitosa.\nNúmero de reservación: {id_reservacion}")
+                base.Habitaciones.update_one(
+                    {"id_habitacion": id_habitacion},
+                    {"$set": {"estado": "Ocupada"}}
+                )
 
+                messagebox.showinfo("Reservación registrada", f"Reservación exitosa.\nNúmero de reservación: {id_reservacion}")
                 actualizar_tabla()
                 popup.destroy()
+                ventana.lift()
             except ValueError as e:
                 messagebox.showerror("Error", f"Datos inválidos: {e}")
 
@@ -1417,14 +1438,26 @@ def gestionar_reservaciones():
         seleccionado = tabla.selection()
         if seleccionado:
             valores = tabla.item(seleccionado[0], "values")
-            cliente, entrada, salida, cantidad = valores
+            cliente, entrada, salida, cantidad, habitacion_id = valores
+
             base.Reservaciones.delete_one({
                 "cliente": cliente,
                 "entrada": entrada,
                 "salida": salida,
-                "cantidad": int(cantidad)
+                "cantidad": int(cantidad),
+                "id_habitacion": int(habitacion_id)
             })
+
+            base.Habitaciones.update_one(
+                {"id_habitacion": int(habitacion_id)},
+                {"$set": {"estado": "Disponible"}}
+            )
+
             actualizar_tabla()
+            messagebox.showinfo("Eliminado", f"La reservación fue eliminada y la habitación {habitacion_id} está disponible.")
+            ventana.lift()
+            ventana.attributes('-topmost', True)
+            ventana.after(100, lambda: ventana.attributes('-topmost', False))
         else:
             messagebox.showwarning("Advertencia", "Seleccione una reservación para eliminar.")
 
@@ -1432,8 +1465,8 @@ def gestionar_reservaciones():
     frame_botones = tk.Frame(ventana)
     frame_botones.pack(pady=5)
     tk.Button(frame_botones, text="Agregar Reservación", command=agregar_reserva).pack(side=tk.LEFT, padx=10)
-    tk.Button(frame_botones, text="Eliminar Reservación", command=eliminar_reserva).pack(side=tk.LEFT, padx=10)
-
+    tk.Button(frame_botones, text="Eliminar Reservación", command=eliminar_reserva, bg="red").pack(side=tk.LEFT, padx=10)
+    
     actualizar_tabla()
 
 # Ventana principal
